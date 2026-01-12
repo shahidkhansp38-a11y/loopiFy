@@ -5,12 +5,15 @@ import { ArrowLeft, Send, Bot, User, Loader2, Sparkles, Trash2 } from 'lucide-re
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
 }
+
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
 
 export default function AITutor() {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -37,6 +40,91 @@ export default function AITutor() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const streamChat = async (
+    chatMessages: { role: string; content: string }[],
+    onDelta: (deltaText: string) => void,
+    onDone: () => void
+  ) => {
+    const resp = await fetch(CHAT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ messages: chatMessages }),
+    });
+
+    if (!resp.ok) {
+      const errorData = await resp.json().catch(() => ({}));
+      if (resp.status === 429) {
+        toast.error("Rate limit exceeded. Please wait a moment and try again.");
+        throw new Error("Rate limit exceeded");
+      }
+      if (resp.status === 402) {
+        toast.error("AI credits exhausted. Please add funds to continue.");
+        throw new Error("Payment required");
+      }
+      throw new Error(errorData.error || "Failed to get AI response");
+    }
+
+    if (!resp.body) throw new Error("No response body");
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let textBuffer = "";
+    let streamDone = false;
+
+    while (!streamDone) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      textBuffer += decoder.decode(value, { stream: true });
+
+      let newlineIndex: number;
+      while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+        let line = textBuffer.slice(0, newlineIndex);
+        textBuffer = textBuffer.slice(newlineIndex + 1);
+
+        if (line.endsWith("\r")) line = line.slice(0, -1);
+        if (line.startsWith(":") || line.trim() === "") continue;
+        if (!line.startsWith("data: ")) continue;
+
+        const jsonStr = line.slice(6).trim();
+        if (jsonStr === "[DONE]") {
+          streamDone = true;
+          break;
+        }
+
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+          if (content) onDelta(content);
+        } catch {
+          textBuffer = line + "\n" + textBuffer;
+          break;
+        }
+      }
+    }
+
+    // Final flush
+    if (textBuffer.trim()) {
+      for (let raw of textBuffer.split("\n")) {
+        if (!raw) continue;
+        if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+        if (raw.startsWith(":") || raw.trim() === "") continue;
+        if (!raw.startsWith("data: ")) continue;
+        const jsonStr = raw.slice(6).trim();
+        if (jsonStr === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+          if (content) onDelta(content);
+        } catch { /* ignore */ }
+      }
+    }
+
+    onDone();
+  };
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -51,51 +139,44 @@ export default function AITutor() {
     setInput('');
     setIsLoading(true);
 
+    let assistantContent = "";
+    const assistantId = (Date.now() + 1).toString();
+
+    const updateAssistant = (chunk: string) => {
+      assistantContent += chunk;
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last?.role === 'assistant' && last.id === assistantId) {
+          return prev.map((m, i) => 
+            i === prev.length - 1 ? { ...m, content: assistantContent } : m
+          );
+        }
+        return [...prev, { id: assistantId, role: 'assistant', content: assistantContent }];
+      });
+    };
+
     try {
-      // Simulate AI response - In production, this would call an AI API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const aiResponse: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: generateSimpleResponse(userMessage.content)
-      };
-      
-      setMessages(prev => [...prev, aiResponse]);
+      const chatHistory = [...messages, userMessage].map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
+      await streamChat(
+        chatHistory,
+        updateAssistant,
+        () => setIsLoading(false)
+      );
     } catch (error) {
       console.error('Error getting AI response:', error);
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: "I'm sorry, I encountered an error. Please try again."
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
+      if (assistantContent === "") {
+        setMessages(prev => [...prev, {
+          id: assistantId,
+          role: 'assistant',
+          content: "I'm sorry, I encountered an error. Please try again."
+        }]);
+      }
       setIsLoading(false);
     }
-  };
-
-  // Simple response generator for demo
-  const generateSimpleResponse = (query: string): string => {
-    const lowerQuery = query.toLowerCase();
-    
-    if (lowerQuery.includes('hello') || lowerQuery.includes('hi')) {
-      return "Hello! Great to see you! 👋 What subject or topic would you like to explore today?";
-    }
-    
-    if (lowerQuery.includes('help')) {
-      return "I'm here to help! You can ask me about:\n\n• Any academic subject (math, science, history, etc.)\n• Programming concepts\n• Study tips and techniques\n• Practice problems\n\nJust type your question!";
-    }
-    
-    if (lowerQuery.includes('math') || lowerQuery.includes('equation')) {
-      return "Mathematics is fascinating! 📐\n\nHere's a quick tip: When solving equations, always remember to perform the same operation on both sides to maintain equality.\n\nWould you like me to explain a specific concept or work through a problem together?";
-    }
-    
-    if (lowerQuery.includes('python') || lowerQuery.includes('code') || lowerQuery.includes('programming')) {
-      return "Programming is a great skill to learn! 💻\n\nFor Python beginners, I recommend starting with:\n1. Variables and data types\n2. Control flow (if/else, loops)\n3. Functions\n4. Lists and dictionaries\n\nWhat specific programming topic interests you?";
-    }
-    
-    return `That's an interesting question about "${query.slice(0, 30)}..."! 🤔\n\nLet me break this down:\n\n1. Start by understanding the core concepts\n2. Practice with examples\n3. Apply what you've learned\n\nWould you like me to dive deeper into any specific aspect?`;
   };
 
   const clearChat = () => {
@@ -139,7 +220,7 @@ export default function AITutor() {
               <h1 className="font-semibold text-foreground">AI Tutor</h1>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                Ready to help
+                Powered by Lovable AI
               </p>
             </div>
           </div>
@@ -191,7 +272,7 @@ export default function AITutor() {
           ))}
         </AnimatePresence>
 
-        {isLoading && (
+        {isLoading && messages[messages.length - 1]?.role === 'user' && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
