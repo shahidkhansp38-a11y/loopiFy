@@ -11,13 +11,18 @@ import {
   LogOut,
   Plus,
   Search,
-  Bell
+  Bell,
+  User,
+  ChevronRight,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useStudyGroups } from '@/hooks/useStudyGroups';
 
 export default function Index() {
   const { user, loading, signOut } = useAuth();
+  const { myGroups, loading: groupsLoading } = useStudyGroups();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,16 +48,10 @@ export default function Index() {
   }
 
   const quickActions = [
-    { icon: Users, label: 'Join Group', color: 'bg-primary' },
-    { icon: MessageSquare, label: 'Chat', color: 'bg-secondary' },
-    { icon: Video, label: 'Video Call', color: 'bg-accent' },
-    { icon: Bot, label: 'AI Tutor', color: 'bg-success' },
-  ];
-
-  const studyGroups = [
-    { name: 'React Developers', members: 24, active: true },
-    { name: 'Python Beginners', members: 18, active: false },
-    { name: 'Data Science Hub', members: 32, active: true },
+    { icon: Users, label: 'Groups', color: 'bg-primary', route: '/groups' },
+    { icon: MessageSquare, label: 'Chat', color: 'bg-secondary', route: '/groups' },
+    { icon: Video, label: 'Video', color: 'bg-accent', route: '/video-call' },
+    { icon: Bot, label: 'AI Tutor', color: 'loopify-gradient', route: '/ai-tutor' },
   ];
 
   return (
@@ -69,7 +68,7 @@ export default function Index() {
             <span className="text-xl font-bold loopify-gradient-text">LoopiFy</span>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button className="p-2 rounded-full hover:bg-muted transition-colors">
               <Search className="w-5 h-5 text-muted-foreground" />
             </button>
@@ -110,7 +109,7 @@ export default function Index() {
           transition={{ delay: 0.2 }}
         >
           <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 gap-3">
             {quickActions.map((action, index) => (
               <motion.button
                 key={action.label}
@@ -119,12 +118,13 @@ export default function Index() {
                 transition={{ delay: 0.2 + index * 0.1 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border/50 loopify-card-shadow hover:border-primary/30 transition-colors"
+                onClick={() => navigate(action.route)}
+                className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border/50 loopify-card-shadow hover:border-primary/30 transition-colors"
               >
-                <div className={`w-12 h-12 rounded-xl ${action.color} flex items-center justify-center`}>
-                  <action.icon className="w-6 h-6 text-primary-foreground" />
+                <div className={`w-11 h-11 rounded-xl ${action.color} flex items-center justify-center`}>
+                  <action.icon className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <span className="text-sm font-medium text-foreground">{action.label}</span>
+                <span className="text-xs font-medium text-foreground">{action.label}</span>
               </motion.button>
             ))}
           </div>
@@ -138,42 +138,63 @@ export default function Index() {
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-foreground">My Study Groups</h2>
-            <Button variant="ghost" size="sm" className="text-primary">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/groups')}
+              className="text-primary"
+            >
               <Plus className="w-4 h-4 mr-1" />
-              New Group
+              New
             </Button>
           </div>
           
-          <div className="space-y-3">
-            {studyGroups.map((group, index) => (
-              <motion.div
-                key={group.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + index * 0.1 }}
-                whileHover={{ x: 4 }}
-                className="p-4 rounded-2xl bg-card border border-border/50 loopify-card-shadow flex items-center justify-between cursor-pointer hover:border-primary/30 transition-colors"
+          {groupsLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : myGroups.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="p-6 rounded-2xl bg-muted/50 text-center"
+            >
+              <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground mb-3">No groups yet</p>
+              <Button
+                onClick={() => navigate('/groups')}
+                size="sm"
+                className="loopify-gradient hover:opacity-90"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl loopify-gradient flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-primary-foreground" />
+                Explore Groups
+              </Button>
+            </motion.div>
+          ) : (
+            <div className="space-y-3">
+              {myGroups.slice(0, 3).map((group, index) => (
+                <motion.div
+                  key={group.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 + index * 0.1 }}
+                  whileHover={{ x: 4 }}
+                  onClick={() => navigate('/groups')}
+                  className="p-4 rounded-2xl bg-card border border-border/50 loopify-card-shadow flex items-center justify-between cursor-pointer hover:border-primary/30 transition-all"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl loopify-gradient flex items-center justify-center">
+                      <BookOpen className="w-6 h-6 text-primary-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">{group.name}</h3>
+                      <p className="text-sm text-muted-foreground">{group.subject || 'Study Group'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">{group.name}</h3>
-                    <p className="text-sm text-muted-foreground">{group.members} members</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {group.active && (
-                    <span className="flex items-center gap-1 text-xs text-success bg-success/10 px-2 py-1 rounded-full">
-                      <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
-                      Active
-                    </span>
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </motion.div>
+              ))}
+            </div>
+          )}
         </motion.section>
 
         {/* AI Tutor Card */}
@@ -182,7 +203,10 @@ export default function Index() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <div className="p-6 rounded-3xl loopify-gradient loopify-shadow-lg text-primary-foreground">
+          <div 
+            onClick={() => navigate('/ai-tutor')}
+            className="p-6 rounded-3xl loopify-gradient loopify-shadow-lg text-primary-foreground cursor-pointer hover:opacity-95 transition-opacity"
+          >
             <div className="flex items-start gap-4">
               <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
                 <Bot className="w-8 h-8" />
@@ -200,6 +224,26 @@ export default function Index() {
                 </Button>
               </div>
             </div>
+          </div>
+        </motion.section>
+
+        {/* Profile Card */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <div className="p-4 rounded-2xl bg-card border border-border/50 loopify-card-shadow flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full loopify-gradient flex items-center justify-center text-xl font-bold text-primary-foreground">
+              {user.user_metadata?.full_name?.charAt(0) || <User className="w-6 h-6" />}
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground">
+                {user.user_metadata?.full_name || 'Your Profile'}
+              </h3>
+              <p className="text-sm text-muted-foreground">{user.email}</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </div>
         </motion.section>
       </main>
