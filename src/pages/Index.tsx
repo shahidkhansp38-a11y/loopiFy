@@ -233,8 +233,11 @@ export default function Index() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
         >
-          <div className="p-4 rounded-2xl bg-card border border-border/50 loopify-card-shadow flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full loopify-gradient flex items-center justify-center text-xl font-bold text-primary-foreground">
+          <div 
+            onClick={() => navigate('/profile')}
+            className="p-4 rounded-2xl bg-card border border-border/50 loopify-card-shadow flex items-center gap-4 cursor-pointer hover:border-primary/30 transition-all"
+          >
+            <div className="w-14 h-14 rounded-full loopify-gradient flex items-center justify-center text-xl font-bold text-primary-foreground overflow-hidden">
               {user.user_metadata?.full_name?.charAt(0) || <User className="w-6 h-6" />}
             </div>
             <div className="flex-1">
