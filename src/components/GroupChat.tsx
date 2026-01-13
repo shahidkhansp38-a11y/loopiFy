@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Send, Loader2, Users } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Users, MessageCircle, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMessages } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
 import { StudyGroup } from '@/hooks/useStudyGroups';
+import { GroupQA } from '@/components/GroupQA';
 import { format } from 'date-fns';
 
 interface GroupChatProps {
@@ -13,7 +14,10 @@ interface GroupChatProps {
   onBack: () => void;
 }
 
+type Tab = 'chat' | 'qa';
+
 export function GroupChat({ group, onBack }: GroupChatProps) {
+  const [activeTab, setActiveTab] = useState<Tab>('chat');
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const { messages, loading, sendMessage } = useMessages(group.id);
@@ -45,6 +49,35 @@ export function GroupChat({ group, onBack }: GroupChatProps) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  // Render Q&A tab
+  if (activeTab === 'qa') {
+    return (
+      <div className="flex flex-col h-screen bg-background">
+        {/* Tab Selector */}
+        <div className="flex border-b bg-card">
+        <button
+          onClick={() => setActiveTab('chat')}
+          className="flex-1 py-3 px-4 flex items-center justify-center gap-2 font-medium transition-colors border-b-2 border-transparent text-muted-foreground hover:text-foreground"
+        >
+          <MessageCircle className="h-4 w-4" />
+          Chat
+        </button>
+        <button
+          onClick={() => setActiveTab('qa')}
+          className="flex-1 py-3 px-4 flex items-center justify-center gap-2 font-medium transition-colors border-b-2 border-primary text-primary"
+        >
+            <HelpCircle className="h-4 w-4" />
+            Q&A
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-hidden">
+          <GroupQA group={group} onBack={onBack} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
@@ -71,6 +104,24 @@ export function GroupChat({ group, onBack }: GroupChatProps) {
           </div>
         </div>
       </motion.header>
+
+      {/* Tab Selector */}
+      <div className="flex border-b bg-card">
+        <button
+          onClick={() => setActiveTab('chat')}
+          className="flex-1 py-3 px-4 flex items-center justify-center gap-2 font-medium transition-colors border-b-2 border-primary text-primary"
+        >
+          <MessageCircle className="h-4 w-4" />
+          Chat
+        </button>
+        <button
+          onClick={() => setActiveTab('qa')}
+          className="flex-1 py-3 px-4 flex items-center justify-center gap-2 font-medium transition-colors border-b-2 border-transparent text-muted-foreground hover:text-foreground"
+        >
+          <HelpCircle className="h-4 w-4" />
+          Q&A
+        </button>
+      </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
