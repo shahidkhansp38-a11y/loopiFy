@@ -23,7 +23,7 @@ const signupSchema = z.object({
   path: ["confirmPassword"],
 });
 
-type AuthMode = 'login' | 'signup';
+type AuthMode = 'login' | 'signup' | 'forgot';
 
 export default function Auth() {
   const [mode, setMode] = useState<AuthMode>('login');
@@ -36,8 +36,9 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [shake, setShake] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, resetPasswordForEmail, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -60,7 +61,31 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      if (mode === 'login') {
+      if (mode === 'forgot') {
+        if (!z.string().email().safeParse(email).success) {
+          setErrors({ email: 'Please enter a valid email address' });
+          triggerShake();
+          setIsLoading(false);
+          return;
+        }
+
+        const { error } = await resetPasswordForEmail(email);
+        if (error) {
+          setErrors({ form: error.message });
+          triggerShake();
+          toast({
+            variant: "destructive",
+            title: "Request Failed",
+            description: error.message,
+          });
+        } else {
+          setResetSent(true);
+          toast({
+            title: "Email Sent!",
+            description: "Check your inbox for the password reset link.",
+          });
+        }
+      } else if (mode === 'login') {
         const result = loginSchema.safeParse({ email, password });
         if (!result.success) {
           const fieldErrors: Record<string, string> = {};
@@ -143,12 +168,24 @@ export default function Auth() {
   };
 
   const switchMode = () => {
-    setMode(mode === 'login' ? 'signup' : 'login');
+    if (mode === 'forgot') {
+      setMode('login');
+    } else {
+      setMode(mode === 'login' ? 'signup' : 'login');
+    }
     clearErrors();
     setEmail('');
     setPassword('');
     setConfirmPassword('');
     setFullName('');
+    setResetSent(false);
+  };
+
+  const goToForgotPassword = () => {
+    setMode('forgot');
+    clearErrors();
+    setPassword('');
+    setResetSent(false);
   };
 
   const cardVariants = {
@@ -202,7 +239,9 @@ export default function Auth() {
                 className="flex justify-center mb-6"
               >
                 <div className="w-16 h-16 rounded-2xl loopify-gradient flex items-center justify-center loopify-shadow">
-                  {mode === 'login' ? (
+                  {mode === 'forgot' ? (
+                    <Mail className="w-8 h-8 text-primary-foreground" />
+                  ) : mode === 'login' ? (
                     <Lock className="w-8 h-8 text-primary-foreground" />
                   ) : (
                     <User className="w-8 h-8 text-primary-foreground" />
@@ -218,12 +257,18 @@ export default function Auth() {
                 className="text-center mb-8"
               >
                 <h1 className="text-2xl font-bold text-foreground mb-2">
-                  {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+                  {mode === 'forgot' 
+                    ? 'Forgot Password?' 
+                    : mode === 'login' 
+                      ? 'Welcome Back' 
+                      : 'Create Account'}
                 </h1>
                 <p className="text-muted-foreground">
-                  {mode === 'login' 
-                    ? 'Login to continue learning' 
-                    : 'Join LoopiFy and start learning together'}
+                  {mode === 'forgot'
+                    ? 'Enter your email to receive a reset link'
+                    : mode === 'login' 
+                      ? 'Login to continue learning' 
+                      : 'Join LoopiFy and start learning together'}
                 </p>
               </motion.div>
 
@@ -300,36 +345,51 @@ export default function Auth() {
                   )}
                 </div>
 
-                {/* Password */}
-                <div className="space-y-1">
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        if (errors.password) clearErrors();
-                      }}
-                      className={`pl-12 pr-12 h-14 rounded-xl border-2 text-base transition-all ${
-                        errors.password 
-                          ? 'border-destructive focus:border-destructive' 
-                          : 'border-input focus:border-primary'
-                      }`}
-                    />
+                {/* Password - Hidden in forgot mode */}
+                {mode !== 'forgot' && (
+                  <div className="space-y-1">
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          if (errors.password) clearErrors();
+                        }}
+                        className={`pl-12 pr-12 h-14 rounded-xl border-2 text-base transition-all ${
+                          errors.password 
+                            ? 'border-destructive focus:border-destructive' 
+                            : 'border-input focus:border-primary'
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-primary hover:text-primary/80 transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    {errors.password && (
+                      <p className="text-sm text-destructive ml-1">{errors.password}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Forgot Password Link - Only in login mode */}
+                {mode === 'login' && (
+                  <div className="text-right">
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-primary hover:text-primary/80 transition-colors"
+                      onClick={goToForgotPassword}
+                      className="text-sm text-primary hover:text-primary/80 transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      Forgot password?
                     </button>
                   </div>
-                  {errors.password && (
-                    <p className="text-sm text-destructive ml-1">{errors.password}</p>
-                  )}
-                </div>
+                )}
 
                 {/* Confirm Password */}
                 <AnimatePresence mode="wait">
@@ -373,41 +433,77 @@ export default function Auth() {
                   )}
                 </AnimatePresence>
 
-                {/* Submit Button */}
-                <motion.div
-                  whileHover={{ scale: isLoading ? 1 : 1.02 }}
-                  whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                >
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full h-14 rounded-xl text-lg font-semibold loopify-gradient hover:opacity-90 transition-opacity loopify-shadow"
+                {/* Reset Email Sent Success */}
+                {mode === 'forgot' && resetSent ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center py-4"
                   >
-                    {isLoading ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                    ) : (
-                      mode === 'login' ? 'LOGIN' : 'REGISTER'
-                    )}
-                  </Button>
-                </motion.div>
+                    <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                      <Mail className="w-8 h-8 text-green-600" />
+                    </div>
+                    <h3 className="font-semibold text-foreground mb-2">Check your email!</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      We've sent a password reset link to<br />
+                      <span className="font-medium text-foreground">{email}</span>
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={switchMode}
+                      className="mt-2"
+                    >
+                      Back to Login
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <>
+                    {/* Submit Button */}
+                    <motion.div
+                      whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                      whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                    >
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full h-14 rounded-xl text-lg font-semibold loopify-gradient hover:opacity-90 transition-opacity loopify-shadow"
+                      >
+                        {isLoading ? (
+                          <Loader2 className="w-6 h-6 animate-spin" />
+                        ) : mode === 'forgot' ? (
+                          'SEND RESET LINK'
+                        ) : mode === 'login' ? (
+                          'LOGIN'
+                        ) : (
+                          'REGISTER'
+                        )}
+                      </Button>
+                    </motion.div>
+                  </>
+                )}
               </form>
 
               {/* Switch Mode */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="mt-6 text-center"
-              >
-                <button
-                  onClick={switchMode}
-                  className="text-primary hover:text-primary/80 transition-colors font-medium"
+              {!(mode === 'forgot' && resetSent) && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="mt-6 text-center"
                 >
-                  {mode === 'login' 
-                    ? "Don't have an account? Sign up" 
-                    : 'Already have an account? Login'}
-                </button>
-              </motion.div>
+                  <button
+                    onClick={switchMode}
+                    className="text-primary hover:text-primary/80 transition-colors font-medium"
+                  >
+                    {mode === 'forgot'
+                      ? 'Back to Login'
+                      : mode === 'login' 
+                        ? "Don't have an account? Sign up" 
+                        : 'Already have an account? Login'}
+                  </button>
+                </motion.div>
+              )}
             </motion.div>
           </motion.div>
         </AnimatePresence>
