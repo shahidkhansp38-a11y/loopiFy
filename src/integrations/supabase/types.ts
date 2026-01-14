@@ -170,6 +170,13 @@ export type Database = {
             referencedRelation: "study_groups"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "group_questions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       messages: {
@@ -278,6 +285,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "group_questions"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_answers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
