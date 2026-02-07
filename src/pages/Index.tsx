@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -19,11 +19,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useStudyGroups } from '@/hooks/useStudyGroups';
+import { useNotifications } from '@/hooks/useNotifications';
+import SearchDialog from '@/components/SearchDialog';
+import NotificationPopover from '@/components/NotificationPopover';
 
 export default function Index() {
   const { user, loading, signOut } = useAuth();
   const { myGroups, loading: groupsLoading } = useStudyGroups();
+  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -69,13 +74,17 @@ export default function Index() {
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="p-2 rounded-full hover:bg-muted transition-colors">
+            <button onClick={() => setSearchOpen(true)} className="p-2 rounded-full hover:bg-muted transition-colors">
               <Search className="w-5 h-5 text-muted-foreground" />
             </button>
-            <button className="p-2 rounded-full hover:bg-muted transition-colors relative">
-              <Bell className="w-5 h-5 text-muted-foreground" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
-            </button>
+            <NotificationPopover>
+              <button className="p-2 rounded-full hover:bg-muted transition-colors relative">
+                <Bell className="w-5 h-5 text-muted-foreground" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
+                )}
+              </button>
+            </NotificationPopover>
             <Button
               variant="ghost"
               size="icon"
@@ -250,6 +259,7 @@ export default function Index() {
           </div>
         </motion.section>
       </main>
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );
 }
