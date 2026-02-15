@@ -25,7 +25,7 @@ export default function Groups() {
   const [activeTab, setActiveTab] = useState<'my' | 'discover'>('my');
   
   const { user, loading: authLoading } = useAuth();
-  const { groups, myGroups, loading, createGroup, joinGroup } = useStudyGroups();
+  const { groups, myGroups, loading, createGroup, joinGroup, updateGroupLimit } = useStudyGroups();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function Groups() {
   }
 
   if (selectedGroup) {
-    return <GroupChat group={selectedGroup} onBack={() => setSelectedGroup(null)} />;
+    return <GroupChat group={selectedGroup} onBack={() => setSelectedGroup(null)} onUpdateLimit={updateGroupLimit} />;
   }
 
   const displayedGroups = activeTab === 'my' ? myGroups : groups;
@@ -169,7 +169,7 @@ export default function Groups() {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-foreground truncate">{group.name}</h3>
                       <p className="text-sm text-muted-foreground truncate">
-                        {group.subject || 'General'} · {group.max_members || 6} members max
+                        {group.subject || 'General'} · {group.member_count ?? 0}/{group.max_members || 6} members
                       </p>
                       {group.description && (
                         <p className="text-xs text-muted-foreground truncate mt-1">
@@ -186,6 +186,10 @@ export default function Groups() {
                       >
                         <LogIn className="w-4 h-4 mr-1" />
                         Open
+                      </Button>
+                    ) : (group.member_count ?? 0) >= (group.max_members || 6) ? (
+                      <Button size="sm" variant="ghost" disabled className="text-muted-foreground">
+                        Full
                       </Button>
                     ) : (
                       <Button
