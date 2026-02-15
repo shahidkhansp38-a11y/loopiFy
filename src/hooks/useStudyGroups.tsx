@@ -70,7 +70,7 @@ export function useStudyGroups() {
     }
   };
 
-  const createGroup = async (name: string, description: string, subject: string, isPublic: boolean = true) => {
+  const createGroup = async (name: string, description: string, subject: string, isPublic: boolean = true, maxMembers: number = 6) => {
     if (!user) return null;
 
     try {
@@ -81,7 +81,8 @@ export function useStudyGroups() {
           description,
           subject,
           is_public: isPublic,
-          created_by: user.id
+          created_by: user.id,
+          max_members: maxMembers
         })
         .select()
         .single();

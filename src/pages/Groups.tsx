@@ -169,7 +169,7 @@ export default function Groups() {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-foreground truncate">{group.name}</h3>
                       <p className="text-sm text-muted-foreground truncate">
-                        {group.subject || 'General'}
+                        {group.subject || 'General'} · {group.max_members || 6} members max
                       </p>
                       {group.description && (
                         <p className="text-xs text-muted-foreground truncate mt-1">
