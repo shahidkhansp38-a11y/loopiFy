@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Users, BookOpen, FileText, Loader2 } from 'lucide-react';
+import { X, Users, BookOpen, FileText, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,14 +9,18 @@ import { Switch } from '@/components/ui/switch';
 interface CreateGroupDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, description: string, subject: string, isPublic: boolean) => Promise<any>;
+  onCreate: (name: string, description: string, subject: string, isPublic: boolean, maxMembers?: number) => Promise<any>;
 }
+
+const MEMBER_LIMITS = [6, 10, 15, 25, 50];
 
 export function CreateGroupDialog({ isOpen, onClose, onCreate }: CreateGroupDialogProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [subject, setSubject] = useState('');
   const [isPublic, setIsPublic] = useState(true);
+  const [maxMembers, setMaxMembers] = useState(6);
+  const [showLimitOptions, setShowLimitOptions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,7 +28,7 @@ export function CreateGroupDialog({ isOpen, onClose, onCreate }: CreateGroupDial
     if (!name.trim()) return;
 
     setIsLoading(true);
-    const result = await onCreate(name, description, subject, isPublic);
+    const result = await onCreate(name, description, subject, isPublic, maxMembers);
     setIsLoading(false);
 
     if (result) {
@@ -32,6 +36,8 @@ export function CreateGroupDialog({ isOpen, onClose, onCreate }: CreateGroupDial
       setDescription('');
       setSubject('');
       setIsPublic(true);
+      setMaxMembers(6);
+      setShowLimitOptions(false);
       onClose();
     }
   };
@@ -56,7 +62,7 @@ export function CreateGroupDialog({ isOpen, onClose, onCreate }: CreateGroupDial
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-md mx-auto"
           >
-            <div className="bg-card rounded-3xl p-6 loopify-card-shadow border border-border/50">
+            <div className="bg-card rounded-3xl p-6 loopify-card-shadow border border-border/50 max-h-[85vh] overflow-y-auto">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -113,6 +119,53 @@ export function CreateGroupDialog({ isOpen, onClose, onCreate }: CreateGroupDial
                     placeholder="Tell others what your group is about..."
                     className="rounded-xl border-2 min-h-[100px] resize-none"
                   />
+                </div>
+
+                {/* Member Limit */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-foreground">Member Limit</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowLimitOptions(!showLimitOptions)}
+                      className="text-xs text-primary flex items-center gap-1 hover:underline"
+                    >
+                      {showLimitOptions ? 'Hide options' : 'Expand limit'}
+                      {showLimitOptions ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(showLimitOptions ? MEMBER_LIMITS : MEMBER_LIMITS.slice(0, 1)).map((limit) => (
+                      <button
+                        key={limit}
+                        type="button"
+                        onClick={() => setMaxMembers(limit)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          maxMembers === limit
+                            ? 'loopify-gradient text-primary-foreground'
+                            : 'bg-muted text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {limit} members
+                      </button>
+                    ))}
+                    {showLimitOptions && (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min={2}
+                          max={100}
+                          value={!MEMBER_LIMITS.includes(maxMembers) ? maxMembers : ''}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            if (val >= 2 && val <= 100) setMaxMembers(val);
+                          }}
+                          placeholder="Custom"
+                          className="w-24 h-10 rounded-xl border-2 text-sm"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
