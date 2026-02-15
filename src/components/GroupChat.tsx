@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Send, Loader2, Users, MessageCircle, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Users, MessageCircle, HelpCircle, Settings, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMessages } from '@/hooks/useMessages';
@@ -12,12 +12,18 @@ import { format } from 'date-fns';
 interface GroupChatProps {
   group: StudyGroup;
   onBack: () => void;
+  onUpdateLimit?: (groupId: string, newLimit: number) => Promise<boolean>;
 }
 
 type Tab = 'chat' | 'qa';
 
-export function GroupChat({ group, onBack }: GroupChatProps) {
+const MEMBER_LIMITS = [6, 10, 15, 25, 50];
+
+export function GroupChat({ group, onBack, onUpdateLimit }: GroupChatProps) {
   const [activeTab, setActiveTab] = useState<Tab>('chat');
+  const [showSettings, setShowSettings] = useState(false);
+  const [newLimit, setNewLimit] = useState(group.max_members || 6);
+  const [updatingLimit, setUpdatingLimit] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const { messages, loading, sendMessage } = useMessages(group.id);
@@ -42,6 +48,16 @@ export function GroupChat({ group, onBack }: GroupChatProps) {
       setNewMessage('');
     }
     setSending(false);
+  };
+
+  const isOwner = user?.id === group.created_by;
+
+  const handleUpdateLimit = async () => {
+    if (!onUpdateLimit || newLimit < 2 || newLimit > 100) return;
+    setUpdatingLimit(true);
+    await onUpdateLimit(group.id, newLimit);
+    setUpdatingLimit(false);
+    setShowSettings(false);
   };
 
   const getInitials = (name: string | null) => {
@@ -100,10 +116,76 @@ export function GroupChat({ group, onBack }: GroupChatProps) {
           
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold text-foreground truncate">{group.name}</h1>
-            <p className="text-xs text-muted-foreground truncate">{group.subject || 'Study Group'}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {group.member_count ?? 0}/{group.max_members || 6} members · {group.subject || 'Study Group'}
+            </p>
           </div>
+
+          {isOwner && (
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="p-2 rounded-full hover:bg-muted transition-colors"
+            >
+              <Settings className="w-5 h-5 text-muted-foreground" />
+            </button>
+          )}
         </div>
       </motion.header>
+
+      {/* Owner Settings Panel */}
+      <AnimatePresence>
+        {showSettings && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden border-b border-border/50 bg-card"
+          >
+            <div className="p-4 space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Group Settings</h3>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Member Limit</label>
+                <div className="flex flex-wrap gap-2">
+                  {MEMBER_LIMITS.map((limit) => (
+                    <button
+                      key={limit}
+                      type="button"
+                      onClick={() => setNewLimit(limit)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        newLimit === limit
+                          ? 'loopify-gradient text-primary-foreground'
+                          : 'bg-muted text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {limit}
+                    </button>
+                  ))}
+                  <Input
+                    type="number"
+                    min={2}
+                    max={100}
+                    value={!MEMBER_LIMITS.includes(newLimit) ? newLimit : ''}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (val >= 2 && val <= 100) setNewLimit(val);
+                    }}
+                    placeholder="Custom"
+                    className="w-20 h-8 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={handleUpdateLimit}
+                disabled={updatingLimit || newLimit === (group.max_members || 6)}
+                size="sm"
+                className="loopify-gradient hover:opacity-90"
+              >
+                {updatingLimit ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Tab Selector */}
       <div className="flex border-b bg-card">

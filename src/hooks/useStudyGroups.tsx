@@ -45,12 +45,27 @@ export function useStudyGroups() {
 
       if (memberError) throw memberError;
 
+      // Fetch member counts per group
+      const groupIds = (publicGroups || []).map(g => g.id);
+      const { data: memberCounts, error: countError } = await supabase
+        .from('group_members')
+        .select('group_id')
+        .in('group_id', groupIds);
+
+      if (countError) throw countError;
+
+      const countMap: Record<string, number> = {};
+      (memberCounts || []).forEach(m => {
+        countMap[m.group_id] = (countMap[m.group_id] || 0) + 1;
+      });
+
       const memberGroupIds = new Set(memberships?.map(m => m.group_id) || []);
 
-      // Add membership status to groups
+      // Add membership status and member count to groups
       const groupsWithStatus = (publicGroups || []).map(group => ({
         ...group,
-        is_member: memberGroupIds.has(group.id)
+        is_member: memberGroupIds.has(group.id),
+        member_count: countMap[group.id] || 0
       }));
 
       setGroups(groupsWithStatus);
@@ -122,6 +137,19 @@ export function useStudyGroups() {
     if (!user) return false;
 
     try {
+      // Check if group is full
+      const group = groups.find(g => g.id === groupId);
+      if (group && group.member_count !== undefined && group.max_members) {
+        if (group.member_count >= group.max_members) {
+          toast({
+            variant: 'destructive',
+            title: 'Group Full',
+            description: 'This group has reached its member limit'
+          });
+          return false;
+        }
+      }
+
       const { error } = await supabase
         .from('group_members')
         .insert({
@@ -186,6 +214,36 @@ export function useStudyGroups() {
     }
   }, [user]);
 
+  const updateGroupLimit = async (groupId: string, newLimit: number) => {
+    if (!user) return false;
+
+    try {
+      const { error } = await supabase
+        .from('study_groups')
+        .update({ max_members: newLimit })
+        .eq('id', groupId)
+        .eq('created_by', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Updated!',
+        description: `Member limit changed to ${newLimit}`
+      });
+
+      await fetchGroups();
+      return true;
+    } catch (error: any) {
+      console.error('Error updating group limit:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update member limit'
+      });
+      return false;
+    }
+  };
+
   return {
     groups,
     myGroups,
@@ -193,6 +251,7 @@ export function useStudyGroups() {
     createGroup,
     joinGroup,
     leaveGroup,
+    updateGroupLimit,
     refetch: fetchGroups
   };
 }
