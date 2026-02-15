@@ -109,7 +109,11 @@ export function useMessages(groupId: string | null) {
               ...data,
               profile: Array.isArray(data.profile) ? data.profile[0] : data.profile
             };
-            setMessages(prev => [...prev, formattedMessage]);
+            setMessages(prev => {
+              // Prevent duplicates
+              if (prev.some(m => m.id === formattedMessage.id)) return prev;
+              return [...prev, formattedMessage];
+            });
           }
         }
       )
