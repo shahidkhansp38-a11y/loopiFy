@@ -106,7 +106,7 @@ export default function Index() {
           transition={{ delay: 0.1 }}
         >
           <h1 className="text-2xl font-bold text-foreground mb-1">
-            Hello, {user.user_metadata?.full_name || 'Learner'}! 👋
+            Hello, {user.user_metadata?.full_name || 'Learner'}
           </h1>
           <p className="text-muted-foreground">Ready to learn something new today?</p>
         </motion.section>
