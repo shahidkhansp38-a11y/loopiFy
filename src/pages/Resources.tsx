@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, BookOpen, FileText, CheckCircle, ExternalLink, Search, Loader2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, FileText, ExternalLink, Search, Loader2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,6 +28,7 @@ export default function Resources() {
   const [loading, setLoading] = useState(true);
   const [selectedSemester, setSelectedSemester] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewingResource, setViewingResource] = useState<Resource | null>(null);
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -144,12 +146,10 @@ export default function Resources() {
                   {items.map(resource => {
                     const typeInfo = TYPE_LABELS[resource.resource_type] || TYPE_LABELS.notes;
                     return (
-                      <a
+                      <button
                         key={resource.id}
-                        href={resource.external_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block p-3 rounded-xl bg-card border border-border/50 hover:border-primary/30 transition-all group"
+                        onClick={() => setViewingResource(resource)}
+                        className="block w-full text-left p-3 rounded-xl bg-card border border-border/50 hover:border-primary/30 transition-all group"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1 min-w-0">
@@ -165,7 +165,7 @@ export default function Resources() {
                           </div>
                           <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0 ml-2 transition-colors" />
                         </div>
-                      </a>
+                      </button>
                     );
                   })}
                 </div>
@@ -174,6 +174,35 @@ export default function Resources() {
           </div>
         )}
       </main>
+
+      {/* In-app resource viewer */}
+      <Sheet open={!!viewingResource} onOpenChange={(open) => !open && setViewingResource(null)}>
+        <SheetContent side="bottom" className="h-[90vh] p-0 rounded-t-2xl">
+          <SheetHeader className="p-4 border-b border-border/50">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-sm font-semibold truncate pr-4">
+                {viewingResource?.title}
+              </SheetTitle>
+              <a
+                href={viewingResource?.external_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary flex items-center gap-1 shrink-0"
+              >
+                Open in browser <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </SheetHeader>
+          {viewingResource && (
+            <iframe
+              src={viewingResource.external_url}
+              className="w-full h-[calc(90vh-60px)] border-0"
+              title={viewingResource.title}
+              sandbox="allow-scripts allow-same-origin allow-popups"
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
