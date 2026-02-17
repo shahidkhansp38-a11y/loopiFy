@@ -8,9 +8,24 @@ import {
   Loader2,
   Save,
   Sparkles,
-  Lock
+  Lock,
+  LogOut,
+  Trash2,
+  PauseCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,7 +34,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 
 export default function Profile() {
-  const { user, loading: authLoading, updatePassword } = useAuth();
+  const { user, loading: authLoading, updatePassword, signOut } = useAuth();
   const { profile, loading: profileLoading, updating, updateProfile, uploadAvatar } = useProfile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,6 +46,8 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -97,6 +114,47 @@ export default function Profile() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  const handleDeactivate = async () => {
+    setDeactivating(true);
+    const { error } = await updateProfile({ is_deactivated: true } as any);
+    setDeactivating(false);
+    if (!error) {
+      toast.success('Account deactivated');
+      await signOut();
+      navigate('/auth');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      const { data: { session } } = await (await import('@/integrations/supabase/client')).supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      toast.success('Account deleted successfully');
+      navigate('/auth');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete account');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -311,6 +369,84 @@ export default function Profile() {
               </>
             )}
           </Button>
+        </motion.section>
+
+        {/* Account Actions */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="space-y-3 pt-4 border-t border-border"
+        >
+          <Label className="text-base font-semibold flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-muted-foreground" />
+            Account Actions
+          </Label>
+
+          <Button
+            onClick={handleSignOut}
+            variant="outline"
+            className="w-full h-12 rounded-xl"
+          >
+            <LogOut className="w-5 h-5 mr-2" />
+            Sign Out
+          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-xl text-yellow-600 border-yellow-600/30 hover:bg-yellow-600/10"
+              >
+                <PauseCircle className="w-5 h-5 mr-2" />
+                Deactivate Account
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Deactivate your account?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Your account will be deactivated and you will be signed out. You can reactivate by signing in again.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeactivate} disabled={deactivating}>
+                  {deactivating ? 'Deactivating...' : 'Deactivate'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-xl text-destructive border-destructive/30 hover:bg-destructive/10"
+              >
+                <Trash2 className="w-5 h-5 mr-2" />
+                Delete Account
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete your account permanently?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. All your data, groups, and messages will be permanently removed.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {deleting ? 'Deleting...' : 'Delete Forever'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </motion.section>
       </main>
     </div>
