@@ -7,8 +7,10 @@ import {
   User, 
   Loader2,
   Save,
-  Sparkles
+  Sparkles,
+  Lock
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,7 +19,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 
 export default function Profile() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, updatePassword } = useAuth();
   const { profile, loading: profileLoading, updating, updateProfile, uploadAvatar } = useProfile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -25,6 +27,10 @@ export default function Profile() {
   const [fullName, setFullName] = useState('');
   const [bio, setBio] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -70,6 +76,28 @@ export default function Profile() {
 
   const handleSave = async () => {
     await updateProfile({ full_name: fullName, bio });
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    setChangingPassword(true);
+    const { error } = await updatePassword(newPassword);
+    setChangingPassword(false);
+    if (error) {
+      toast.error(error.message || 'Failed to update password');
+    } else {
+      toast.success('Password updated successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    }
   };
 
   if (authLoading || profileLoading) {
@@ -204,7 +232,63 @@ export default function Profile() {
           </div>
         </motion.section>
 
-        {/* Save Button */}
+        {/* Change Password Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-primary" />
+            <Label className="text-base font-semibold">Change Password</Label>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="newPassword">New Password</Label>
+            <Input
+              id="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password"
+              className="h-12 rounded-xl"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm new password"
+              className="h-12 rounded-xl"
+            />
+          </div>
+
+          <Button
+            onClick={handleChangePassword}
+            disabled={changingPassword || !newPassword || !confirmPassword}
+            variant="outline"
+            className="w-full h-12 rounded-xl"
+          >
+            {changingPassword ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              <>
+                <Lock className="w-5 h-5 mr-2" />
+                Update Password
+              </>
+            )}
+          </Button>
+        </motion.section>
+
+
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
