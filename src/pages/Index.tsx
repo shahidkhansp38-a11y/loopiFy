@@ -55,7 +55,7 @@ export default function Index() {
   const quickActions = [
     { icon: Users, label: 'Groups', color: 'bg-primary', route: '/groups' },
     { icon: BookOpen, label: 'Resources', color: 'bg-secondary', route: '/resources' },
-    { icon: Video, label: 'Video', color: 'bg-accent', route: '/video-call' },
+    { icon: Video, label: 'Video', color: 'bg-foreground', route: '/video-call' },
     { icon: Bot, label: 'AI Tutor', color: 'loopify-gradient', route: '/ai-tutor' },
   ];
 
