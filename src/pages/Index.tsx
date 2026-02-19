@@ -85,14 +85,6 @@ export default function Index() {
                 }
               </button>
             </NotificationPopover>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={signOut}
-              className="text-muted-foreground hover:text-destructive">
-
-              <LogOut className="w-5 h-5" />
-            </Button>
           </div>
         </div>
       </motion.header>
