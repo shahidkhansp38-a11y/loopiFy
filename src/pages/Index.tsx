@@ -32,7 +32,7 @@ export default function Index() {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate('/auth');
+      navigate('/welcome');
     }
   }, [user, loading, navigate]);
 

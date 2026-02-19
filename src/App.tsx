@@ -1,13 +1,16 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { AnimatePresence } from "framer-motion";
+import SplashScreen from "@/components/SplashScreen";
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Landing = lazy(() => import("./pages/Landing"));
 const Groups = lazy(() => import("./pages/Groups"));
 const AITutor = lazy(() => import("./pages/AITutor"));
 const VideoCall = lazy(() => import("./pages/VideoCall"));
@@ -18,6 +21,49 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
+const AppContent = () => {
+  const [showSplash, setShowSplash] = useState(true);
+
+  // Only show splash on first load in the session
+  useEffect(() => {
+    const seen = sessionStorage.getItem('splash_seen');
+    if (seen) setShowSplash(false);
+    else sessionStorage.setItem('splash_seen', '1');
+  }, []);
+
+  return (
+    <>
+      <AnimatePresence>
+        {showSplash && (
+          <SplashScreen onComplete={() => setShowSplash(false)} />
+        )}
+      </AnimatePresence>
+
+      {!showSplash && (
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center bg-background">
+            <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+          </div>
+        }>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/welcome" element={<Landing />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/groups" element={<Groups />} />
+            <Route path="/ai-tutor" element={<AITutor />} />
+            <Route path="/video-call" element={<VideoCall />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/resources" element={<Resources />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      )}
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -25,20 +71,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" /></div>}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/groups" element={<Groups />} />
-              <Route path="/ai-tutor" element={<AITutor />} />
-              <Route path="/video-call" element={<VideoCall />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/resources" element={<Resources />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+          <AppContent />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
