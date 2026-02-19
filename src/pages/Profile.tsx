@@ -186,8 +186,9 @@ export default function Profile() {
             size="icon"
             onClick={() => navigate('/')}
             className="shrink-0"
+            aria-label="Go back to home"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5" aria-hidden="true" />
           </Button>
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
@@ -210,31 +211,36 @@ export default function Profile() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleAvatarClick}
+              role="button"
+              tabIndex={0}
+              aria-label="Change profile photo"
+              onKeyDown={(e) => e.key === 'Enter' && handleAvatarClick()}
               className="w-28 h-28 rounded-full overflow-hidden cursor-pointer ring-4 ring-primary/20 hover:ring-primary/40 transition-all"
             >
               {profile?.avatar_url ? (
                 <img 
                   src={profile.avatar_url} 
-                  alt="Avatar" 
+                  alt={`${fullName || 'User'} profile photo`}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full loopify-gradient flex items-center justify-center">
-                  <User className="w-12 h-12 text-primary-foreground" />
+                  <User className="w-12 h-12 text-primary-foreground" aria-hidden="true" />
                 </div>
               )}
               {updating && (
                 <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-full">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" aria-hidden="true" />
                 </div>
               )}
             </motion.div>
             <button
               onClick={handleAvatarClick}
               disabled={updating}
+              aria-label="Upload new profile photo"
               className="absolute bottom-0 right-0 w-9 h-9 rounded-full loopify-gradient flex items-center justify-center loopify-shadow hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              <Camera className="w-4 h-4 text-primary-foreground" />
+              <Camera className="w-4 h-4 text-primary-foreground" aria-hidden="true" />
             </button>
           </div>
           <input
@@ -243,8 +249,9 @@ export default function Profile() {
             accept="image/*"
             onChange={handleFileChange}
             className="hidden"
+            aria-label="Profile photo file input"
           />
-          <p className="text-sm text-muted-foreground">Tap to change photo</p>
+          <p className="text-sm text-muted-foreground" aria-live="polite">Tap to change photo</p>
         </motion.section>
 
         {/* Form Section */}
@@ -387,8 +394,9 @@ export default function Profile() {
             onClick={handleSignOut}
             variant="outline"
             className="w-full h-12 rounded-xl"
+            aria-label="Sign out of your account"
           >
-            <LogOut className="w-5 h-5 mr-2" />
+            <LogOut className="w-5 h-5 mr-2" aria-hidden="true" />
             Sign Out
           </Button>
 
@@ -396,9 +404,10 @@ export default function Profile() {
             <AlertDialogTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full h-12 rounded-xl text-yellow-600 border-yellow-600/30 hover:bg-yellow-600/10"
+                className="w-full h-12 rounded-xl text-amber-600 border-amber-600/30 hover:bg-amber-600/10"
+                aria-label="Deactivate your account"
               >
-                <PauseCircle className="w-5 h-5 mr-2" />
+                <PauseCircle className="w-5 h-5 mr-2" aria-hidden="true" />
                 Deactivate Account
               </Button>
             </AlertDialogTrigger>
