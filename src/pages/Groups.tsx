@@ -14,9 +14,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppUser } from '@/hooks/useAppUser';
 import { useStudyGroups, StudyGroup } from '@/hooks/useStudyGroups';
 import { CreateGroupDialog } from '@/components/CreateGroupDialog';
 import { GroupChat } from '@/components/GroupChat';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Groups() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,8 +27,22 @@ export default function Groups() {
   const [activeTab, setActiveTab] = useState<'my' | 'discover'>('my');
   
   const { user, loading: authLoading } = useAuth();
+  const { isTeacher } = useAppUser();
   const { groups, myGroups, loading, createGroup, joinGroup, updateGroupLimit } = useStudyGroups();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleNewClick = () => {
+    if (!isTeacher) {
+      toast({
+        title: 'Teachers only',
+        description: 'Only teachers can create groups. Update your role in Profile.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setShowCreateDialog(true);
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -72,7 +88,7 @@ export default function Groups() {
               <h1 className="text-xl font-bold text-foreground">Study Groups</h1>
             </div>
             <Button
-              onClick={() => setShowCreateDialog(true)}
+              onClick={handleNewClick}
               size="sm"
               className="loopify-gradient hover:opacity-90"
             >
@@ -138,11 +154,11 @@ export default function Groups() {
                 : 'Try a different search or create a new group'}
             </p>
             <Button
-              onClick={() => setShowCreateDialog(true)}
+              onClick={handleNewClick}
               className="loopify-gradient hover:opacity-90 loopify-shadow"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create Group
+              {isTeacher ? 'Create Group' : 'Browse groups'}
             </Button>
           </motion.div>
         ) : (

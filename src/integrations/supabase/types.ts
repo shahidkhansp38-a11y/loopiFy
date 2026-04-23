@@ -99,6 +99,170 @@ export type Database = {
           },
         ]
       }
+      app_users: {
+        Row: {
+          created_at: string
+          id: string
+          onboarding_completed: boolean
+          platform_role: Database["public"]["Enums"]["platform_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          onboarding_completed?: boolean
+          platform_role?: Database["public"]["Enums"]["platform_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          onboarding_completed?: boolean
+          platform_role?: Database["public"]["Enums"]["platform_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      group_admins: {
+        Row: {
+          admin_id: string
+          created_at: string
+          group_id: string
+          id: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          group_id: string
+          id?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_admins_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_invites: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          group_id: string
+          id: string
+          invite_code: string
+          max_uses: number | null
+          uses_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          group_id: string
+          id?: string
+          invite_code: string
+          max_uses?: number | null
+          uses_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          group_id?: string
+          id?: string
+          invite_code?: string
+          max_uses?: number | null
+          uses_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_invites_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_join_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          group_id: string
+          id: string
+          message: string | null
+          status: Database["public"]["Enums"]["join_request_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          group_id: string
+          id?: string
+          message?: string | null
+          status?: Database["public"]["Enums"]["join_request_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          group_id?: string
+          id?: string
+          message?: string | null
+          status?: Database["public"]["Enums"]["join_request_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_join_requests_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_learning_members: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_learning_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
@@ -176,6 +340,94 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      lecture_progress: {
+        Row: {
+          completed: boolean
+          id: string
+          last_position_seconds: number
+          lecture_id: string
+          progress_percent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          id?: string
+          last_position_seconds?: number
+          lecture_id: string
+          progress_percent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          id?: string
+          last_position_seconds?: number
+          lecture_id?: string
+          progress_percent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lecture_progress_lecture_id_fkey"
+            columns: ["lecture_id"]
+            isOneToOne: false
+            referencedRelation: "lectures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lectures: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          duration_seconds: number | null
+          group_id: string
+          id: string
+          position: number
+          title: string
+          updated_at: string
+          video_storage_path: string | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          duration_seconds?: number | null
+          group_id: string
+          id?: string
+          position?: number
+          title: string
+          updated_at?: string
+          video_storage_path?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          duration_seconds?: number | null
+          group_id?: string
+          id?: string
+          position?: number
+          title?: string
+          updated_at?: string
+          video_storage_path?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lectures_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -454,6 +706,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_platform_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["platform_role"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -461,13 +717,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_group_admin: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      is_learning_member: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_teacher: { Args: { _user_id: string }; Returns: boolean }
+      redeem_group_invite: { Args: { _code: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      join_request_status: "pending" | "approved" | "rejected"
+      platform_role: "student" | "teacher" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -596,6 +865,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      join_request_status: ["pending", "approved", "rejected"],
+      platform_role: ["student", "teacher", "admin"],
     },
   },
 } as const

@@ -11,7 +11,10 @@ import SplashScreen from "@/components/SplashScreen";
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Landing = lazy(() => import("./pages/Landing"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Groups = lazy(() => import("./pages/Groups"));
+const Learning = lazy(() => import("./pages/Learning"));
+const LearningGroup = lazy(() => import("./pages/LearningGroup"));
 const AITutor = lazy(() => import("./pages/AITutor"));
 const VideoCall = lazy(() => import("./pages/VideoCall"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -49,7 +52,10 @@ const AppContent = () => {
             <Route path="/" element={<Index />} />
             <Route path="/welcome" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/groups" element={<Groups />} />
+            <Route path="/learning" element={<Learning />} />
+            <Route path="/learning/:groupId" element={<LearningGroup />} />
             <Route path="/ai-tutor" element={<AITutor />} />
             <Route path="/video-call" element={<VideoCall />} />
             <Route path="/profile" element={<Profile />} />
