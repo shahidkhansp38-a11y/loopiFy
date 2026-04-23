@@ -63,10 +63,10 @@ export default function Index() {
   }
 
   const quickActions = [
+  { icon: GraduationCap, label: 'Learning', color: 'loopify-gradient', route: '/learning' },
   { icon: Users, label: 'Groups', color: 'bg-primary', route: '/groups' },
   { icon: BookOpen, label: 'Resources', color: 'bg-secondary', route: '/resources' },
-  { icon: Video, label: 'Video', color: 'bg-foreground', route: '/video-call' },
-  { icon: Bot, label: 'AI Tutor', color: 'loopify-gradient', route: '/ai-tutor' }];
+  { icon: Bot, label: 'AI Tutor', color: 'bg-foreground', route: '/ai-tutor' }];
 
 
   return (
@@ -107,10 +107,20 @@ export default function Index() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}>
 
-          <h1 className="text-2xl text-foreground mb-1 font-serif font-semibold text-justify">
-            Hello, {user.user_metadata?.full_name || 'Learner'}
-          </h1>
-          <p className="text-muted-foreground">Ready to learn something new today?</p>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl text-foreground font-serif font-semibold">
+              Hello, {user.user_metadata?.full_name || 'Learner'}
+            </h1>
+            {isTeacher && (
+              <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
+                <Crown className="w-3 h-3" />
+                Teacher
+              </span>
+            )}
+          </div>
+          <p className="text-muted-foreground text-base font-medium">
+            Learn with expert teachers in structured groups
+          </p>
         </motion.section>
 
         {/* Quick Actions */}
