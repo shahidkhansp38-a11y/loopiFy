@@ -8,16 +8,19 @@ import {
   Video,
   Bot,
   BookOpen,
+  GraduationCap,
   LogOut,
   Plus,
   Search,
   Bell,
   User,
+  Crown,
   ChevronRight,
   Loader2 } from
 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppUser } from '@/hooks/useAppUser';
 import { useStudyGroups } from '@/hooks/useStudyGroups';
 import { useNotifications } from '@/hooks/useNotifications';
 import SearchDialog from '@/components/SearchDialog';
@@ -25,6 +28,7 @@ import NotificationPopover from '@/components/NotificationPopover';
 
 export default function Index() {
   const { user, loading, signOut } = useAuth();
+  const { isTeacher, needsOnboarding, loading: appUserLoading } = useAppUser();
   const { myGroups, loading: groupsLoading } = useStudyGroups();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
@@ -35,6 +39,12 @@ export default function Index() {
       navigate('/welcome');
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (!loading && !appUserLoading && user && needsOnboarding) {
+      navigate('/onboarding');
+    }
+  }, [loading, appUserLoading, user, needsOnboarding, navigate]);
 
   if (loading) {
     return (
