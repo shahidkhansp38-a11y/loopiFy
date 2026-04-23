@@ -115,6 +115,11 @@ export function useStudyGroups() {
 
       if (memberError) throw memberError;
 
+      // Layer the new learning system on top: register teacher as group admin
+      // and as a learning member. Errors here are non-fatal (e.g. user is not a teacher).
+      await supabase.from('group_admins').insert({ group_id: group.id, admin_id: user.id });
+      await supabase.from('group_learning_members').insert({ group_id: group.id, user_id: user.id });
+
       toast({
         title: 'Success!',
         description: `"${name}" group created successfully`
