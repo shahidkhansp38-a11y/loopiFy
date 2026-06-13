@@ -22,6 +22,7 @@ import { useLectures, useGroupInvites, useJoinRequests, Lecture } from '@/hooks/
 import { supabase } from '@/integrations/supabase/client';
 import { AddLectureDialog } from '@/components/AddLectureDialog';
 import { VideoEmbed } from '@/components/VideoEmbed';
+import { AssignmentsTab } from '@/components/AssignmentsTab';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LearningGroup() {
