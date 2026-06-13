@@ -234,6 +234,10 @@ export default function LearningGroup() {
             )}
           </TabsContent>
 
+          <TabsContent value="assignments" className="mt-6">
+            {groupId && <AssignmentsTab groupId={groupId} isAdmin={isAdmin} />}
+          </TabsContent>
+
           <TabsContent value="manage" className="mt-6">
             {isAdmin && groupId && <ManageStudents groupId={groupId} />}
           </TabsContent>
