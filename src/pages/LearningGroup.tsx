@@ -145,8 +145,9 @@ export default function LearningGroup() {
 
       <main className="container mx-auto px-4 py-6 max-w-3xl">
         <Tabs defaultValue="lectures" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-12 rounded-xl">
+          <TabsList className="grid w-full grid-cols-4 h-12 rounded-xl">
             <TabsTrigger value="lectures" className="rounded-lg">Lectures</TabsTrigger>
+            <TabsTrigger value="assignments" className="rounded-lg">Tasks</TabsTrigger>
             <TabsTrigger value="manage" className="rounded-lg" disabled={!isAdmin}>
               Manage
             </TabsTrigger>
