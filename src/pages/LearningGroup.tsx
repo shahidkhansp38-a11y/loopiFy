@@ -22,6 +22,7 @@ import { useLectures, useGroupInvites, useJoinRequests, Lecture } from '@/hooks/
 import { supabase } from '@/integrations/supabase/client';
 import { AddLectureDialog } from '@/components/AddLectureDialog';
 import { VideoEmbed } from '@/components/VideoEmbed';
+import { AssignmentsTab } from '@/components/AssignmentsTab';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LearningGroup() {
@@ -144,8 +145,9 @@ export default function LearningGroup() {
 
       <main className="container mx-auto px-4 py-6 max-w-3xl">
         <Tabs defaultValue="lectures" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-12 rounded-xl">
+          <TabsList className="grid w-full grid-cols-4 h-12 rounded-xl">
             <TabsTrigger value="lectures" className="rounded-lg">Lectures</TabsTrigger>
+            <TabsTrigger value="assignments" className="rounded-lg">Tasks</TabsTrigger>
             <TabsTrigger value="manage" className="rounded-lg" disabled={!isAdmin}>
               Manage
             </TabsTrigger>
@@ -230,6 +232,10 @@ export default function LearningGroup() {
                 })}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="assignments" className="mt-6">
+            {groupId && <AssignmentsTab groupId={groupId} isAdmin={isAdmin} />}
           </TabsContent>
 
           <TabsContent value="manage" className="mt-6">
