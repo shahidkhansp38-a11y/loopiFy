@@ -20,6 +20,7 @@ const VideoCall = lazy(() => import("./pages/VideoCall"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Resources = lazy(() => import("./pages/Resources"));
+const Flashcards = lazy(() => import("./pages/Flashcards"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const AppContent = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/flashcards" element={<Flashcards />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
