@@ -33,6 +33,7 @@ export default function LearningGroup() {
   const { user, loading: authLoading } = useAuth();
   const { lectures, progress, isAdmin, loading, addLecture, deleteLecture, upsertProgress, markCompleted } =
     useLectures(groupId);
+  const { log: logStreak } = useStreak();
   const [groupName, setGroupName] = useState<string>('');
   const [activeLecture, setActiveLecture] = useState<Lecture | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -97,7 +98,11 @@ export default function LearningGroup() {
           </div>
 
           <Button
-            onClick={() => markCompleted(activeLecture.id)}
+            onClick={async () => {
+              await markCompleted(activeLecture.id);
+              const mins = Math.max(5, Math.round((activeLecture.duration_seconds ?? 600) / 60));
+              logStreak({ minutes: mins });
+            }}
             disabled={p?.completed}
             className="w-full h-12 rounded-xl loopify-gradient hover:opacity-90"
           >
