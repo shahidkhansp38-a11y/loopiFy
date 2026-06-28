@@ -25,6 +25,10 @@ import { useStudyGroups } from '@/hooks/useStudyGroups';
 import { useNotifications } from '@/hooks/useNotifications';
 import SearchDialog from '@/components/SearchDialog';
 import NotificationPopover from '@/components/NotificationPopover';
+import { StreakChip } from '@/components/StreakChip';
+import { GoalRing } from '@/components/GoalRing';
+import { GoalSettingsDialog } from '@/components/GoalSettingsDialog';
+import { Layers } from 'lucide-react';
 
 export default function Index() {
   const { user, loading, signOut } = useAuth();
@@ -33,6 +37,7 @@ export default function Index() {
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [goalsOpen, setGoalsOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -64,8 +69,8 @@ export default function Index() {
 
   const quickActions = [
   { icon: GraduationCap, label: 'Learning', color: 'loopify-gradient', route: '/learning' },
-  { icon: Users, label: 'Groups', color: 'bg-primary', route: '/groups' },
-  { icon: BookOpen, label: 'Resources', color: 'bg-secondary', route: '/resources' },
+  { icon: Layers, label: 'Flashcards', color: 'bg-primary', route: '/flashcards' },
+  { icon: Users, label: 'Groups', color: 'bg-secondary', route: '/groups' },
   { icon: Bot, label: 'AI Tutor', color: 'bg-foreground', route: '/ai-tutor' }];
 
 
@@ -121,6 +126,14 @@ export default function Index() {
           <p className="text-muted-foreground text-base font-medium">
             Learn with expert teachers in structured groups
           </p>
+          <div className="flex items-center gap-3 mt-4">
+            <StreakChip onClick={() => setGoalsOpen(true)} />
+            <GoalRing onClick={() => setGoalsOpen(true)} />
+            <button onClick={() => setGoalsOpen(true)} className="text-xs text-muted-foreground text-left">
+              <p className="font-medium text-foreground">Today's goal</p>
+              <p>Tap to adjust</p>
+            </button>
+          </div>
         </motion.section>
 
         {/* Quick Actions */}
@@ -272,6 +285,7 @@ export default function Index() {
         </motion.section>
       </main>
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      <GoalSettingsDialog open={goalsOpen} onOpenChange={setGoalsOpen} />
     </div>);
 
 }

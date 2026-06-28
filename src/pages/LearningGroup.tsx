@@ -23,7 +23,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { AddLectureDialog } from '@/components/AddLectureDialog';
 import { VideoEmbed } from '@/components/VideoEmbed';
 import { AssignmentsTab } from '@/components/AssignmentsTab';
+import { FlashcardsTab } from '@/components/FlashcardsTab';
 import { useToast } from '@/hooks/use-toast';
+import { useStreak } from '@/hooks/useStreak';
 
 export default function LearningGroup() {
   const { groupId } = useParams<{ groupId: string }>();
@@ -31,6 +33,7 @@ export default function LearningGroup() {
   const { user, loading: authLoading } = useAuth();
   const { lectures, progress, isAdmin, loading, addLecture, deleteLecture, upsertProgress, markCompleted } =
     useLectures(groupId);
+  const { log: logStreak } = useStreak();
   const [groupName, setGroupName] = useState<string>('');
   const [activeLecture, setActiveLecture] = useState<Lecture | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -95,7 +98,11 @@ export default function LearningGroup() {
           </div>
 
           <Button
-            onClick={() => markCompleted(activeLecture.id)}
+            onClick={async () => {
+              await markCompleted(activeLecture.id);
+              const mins = Math.max(5, Math.round((activeLecture.duration_seconds ?? 600) / 60));
+              logStreak({ minutes: mins });
+            }}
             disabled={p?.completed}
             className="w-full h-12 rounded-xl loopify-gradient hover:opacity-90"
           >
@@ -145,8 +152,9 @@ export default function LearningGroup() {
 
       <main className="container mx-auto px-4 py-6 max-w-3xl">
         <Tabs defaultValue="lectures" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-12 rounded-xl">
+          <TabsList className="grid w-full grid-cols-5 h-12 rounded-xl">
             <TabsTrigger value="lectures" className="rounded-lg">Lectures</TabsTrigger>
+            <TabsTrigger value="cards" className="rounded-lg">Cards</TabsTrigger>
             <TabsTrigger value="assignments" className="rounded-lg">Tasks</TabsTrigger>
             <TabsTrigger value="manage" className="rounded-lg" disabled={!isAdmin}>
               Manage
@@ -155,6 +163,10 @@ export default function LearningGroup() {
               Invites
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="cards" className="mt-6">
+            {groupId && <FlashcardsTab groupId={groupId} canEdit={isAdmin} />}
+          </TabsContent>
 
           <TabsContent value="lectures" className="mt-6">
             {lectures.length === 0 ? (

@@ -15,6 +15,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { StreakHeatmap } from '@/components/StreakHeatmap';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -199,6 +200,7 @@ export default function Profile() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-md space-y-8">
+        <StreakHeatmap />
         {/* Avatar Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}

@@ -4,6 +4,7 @@ import { ClipboardList, Plus, Trash2, CheckCircle2, Clock, AlertCircle, ChevronD
 import { format, isPast } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useAssignments, Assignment } from '@/hooks/useAssignments';
+import { useStreak } from '@/hooks/useStreak';
 import { AddAssignmentDialog } from './AddAssignmentDialog';
 import { SubmitAssignmentDialog } from './SubmitAssignmentDialog';
 import { GradeSubmissionsPanel } from './GradeSubmissionsPanel';
@@ -15,6 +16,7 @@ interface Props {
 
 export function AssignmentsTab({ groupId, isAdmin }: Props) {
   const { assignments, mySubmissions, loading, createAssignment, deleteAssignment, submit } = useAssignments(groupId);
+  const { log: logStreak } = useStreak();
   const [addOpen, setAddOpen] = useState(false);
   const [submitFor, setSubmitFor] = useState<Assignment | null>(null);
   const [expandedAdmin, setExpandedAdmin] = useState<string | null>(null);
@@ -136,7 +138,7 @@ export function AssignmentsTab({ groupId, isAdmin }: Props) {
           isOpen={!!submitFor}
           onClose={() => setSubmitFor(null)}
           existing={mySubmissions[submitFor.id]}
-          onSubmit={(content, fileUrl) => submit(submitFor.id, content, fileUrl)}
+          onSubmit={async (content, fileUrl) => { await submit(submitFor.id, content, fileUrl); logStreak({ submissions: 1 }); }}
         />
       )}
     </div>

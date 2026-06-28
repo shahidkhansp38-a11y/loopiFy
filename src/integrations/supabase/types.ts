@@ -167,6 +167,169 @@ export type Database = {
           },
         ]
       }
+      daily_activity: {
+        Row: {
+          activity_date: string
+          assignments_submitted: number
+          cards_reviewed: number
+          id: string
+          minutes_studied: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_date?: string
+          assignments_submitted?: number
+          cards_reviewed?: number
+          id?: string
+          minutes_studied?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          assignments_submitted?: number
+          cards_reviewed?: number
+          id?: string
+          minutes_studied?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      flashcard_decks: {
+        Row: {
+          created_at: string
+          description: string | null
+          group_id: string | null
+          id: string
+          is_shared: boolean
+          lecture_id: string | null
+          owner_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          group_id?: string | null
+          id?: string
+          is_shared?: boolean
+          lecture_id?: string | null
+          owner_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          group_id?: string | null
+          id?: string
+          is_shared?: boolean
+          lecture_id?: string | null
+          owner_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcard_decks_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flashcard_decks_lecture_id_fkey"
+            columns: ["lecture_id"]
+            isOneToOne: false
+            referencedRelation: "lectures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flashcard_reviews: {
+        Row: {
+          card_id: string
+          created_at: string
+          due_at: string
+          ease_factor: number
+          id: string
+          interval_days: number
+          last_reviewed_at: string | null
+          repetitions: number
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          due_at?: string
+          ease_factor?: number
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          repetitions?: number
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          due_at?: string
+          ease_factor?: number
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          repetitions?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcard_reviews_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "flashcards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flashcards: {
+        Row: {
+          back: string
+          created_at: string
+          deck_id: string
+          front: string
+          hint: string | null
+          id: string
+          image_url: string | null
+        }
+        Insert: {
+          back: string
+          created_at?: string
+          deck_id: string
+          front: string
+          hint?: string | null
+          id?: string
+          image_url?: string | null
+        }
+        Update: {
+          back?: string
+          created_at?: string
+          deck_id?: string
+          front?: string
+          hint?: string | null
+          id?: string
+          image_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_deck_id_fkey"
+            columns: ["deck_id"]
+            isOneToOne: false
+            referencedRelation: "flashcard_decks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_admins: {
         Row: {
           admin_id: string
@@ -777,6 +940,27 @@ export type Database = {
           },
         ]
       }
+      user_goals: {
+        Row: {
+          daily_cards_goal: number
+          daily_minutes_goal: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          daily_cards_goal?: number
+          daily_minutes_goal?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          daily_cards_goal?: number
+          daily_minutes_goal?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -798,11 +982,46 @@ export type Database = {
         }
         Relationships: []
       }
+      user_streaks: {
+        Row: {
+          current_streak: number
+          freezes_available: number
+          last_active_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          freezes_available?: number
+          last_active_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          freezes_available?: number
+          last_active_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      can_edit_deck: {
+        Args: { _deck_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_deck: {
+        Args: { _deck_id: string; _user_id: string }
+        Returns: boolean
+      }
       get_platform_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["platform_role"]
@@ -832,6 +1051,28 @@ export type Database = {
       }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
       is_teacher: { Args: { _user_id: string }; Returns: boolean }
+      log_daily_activity: {
+        Args: {
+          _activity_date?: string
+          _cards?: number
+          _minutes?: number
+          _submissions?: number
+        }
+        Returns: {
+          current_streak: number
+          freezes_available: number
+          last_active_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_streaks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       redeem_group_invite: { Args: { _code: string }; Returns: string }
     }
     Enums: {
