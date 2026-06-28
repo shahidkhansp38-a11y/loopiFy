@@ -4,6 +4,7 @@ import { ClipboardList, Plus, Trash2, CheckCircle2, Clock, AlertCircle, ChevronD
 import { format, isPast } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useAssignments, Assignment } from '@/hooks/useAssignments';
+import { useStreak } from '@/hooks/useStreak';
 import { AddAssignmentDialog } from './AddAssignmentDialog';
 import { SubmitAssignmentDialog } from './SubmitAssignmentDialog';
 import { GradeSubmissionsPanel } from './GradeSubmissionsPanel';
