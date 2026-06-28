@@ -16,6 +16,7 @@ interface Props {
 
 export function AssignmentsTab({ groupId, isAdmin }: Props) {
   const { assignments, mySubmissions, loading, createAssignment, deleteAssignment, submit } = useAssignments(groupId);
+  const { log: logStreak } = useStreak();
   const [addOpen, setAddOpen] = useState(false);
   const [submitFor, setSubmitFor] = useState<Assignment | null>(null);
   const [expandedAdmin, setExpandedAdmin] = useState<string | null>(null);
@@ -137,7 +138,7 @@ export function AssignmentsTab({ groupId, isAdmin }: Props) {
           isOpen={!!submitFor}
           onClose={() => setSubmitFor(null)}
           existing={mySubmissions[submitFor.id]}
-          onSubmit={(content, fileUrl) => submit(submitFor.id, content, fileUrl)}
+          onSubmit={async (content, fileUrl) => { await submit(submitFor.id, content, fileUrl); logStreak({ submissions: 1 }); }}
         />
       )}
     </div>
