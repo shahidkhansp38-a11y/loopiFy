@@ -167,6 +167,36 @@ export type Database = {
           },
         ]
       }
+      daily_activity: {
+        Row: {
+          activity_date: string
+          assignments_submitted: number
+          cards_reviewed: number
+          id: string
+          minutes_studied: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_date?: string
+          assignments_submitted?: number
+          cards_reviewed?: number
+          id?: string
+          minutes_studied?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          assignments_submitted?: number
+          cards_reviewed?: number
+          id?: string
+          minutes_studied?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       flashcard_decks: {
         Row: {
           created_at: string
@@ -910,6 +940,27 @@ export type Database = {
           },
         ]
       }
+      user_goals: {
+        Row: {
+          daily_cards_goal: number
+          daily_minutes_goal: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          daily_cards_goal?: number
+          daily_minutes_goal?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          daily_cards_goal?: number
+          daily_minutes_goal?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -927,6 +978,33 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_streaks: {
+        Row: {
+          current_streak: number
+          freezes_available: number
+          last_active_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          freezes_available?: number
+          last_active_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          freezes_available?: number
+          last_active_date?: string | null
+          longest_streak?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -973,6 +1051,28 @@ export type Database = {
       }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
       is_teacher: { Args: { _user_id: string }; Returns: boolean }
+      log_daily_activity: {
+        Args: {
+          _activity_date?: string
+          _cards?: number
+          _minutes?: number
+          _submissions?: number
+        }
+        Returns: {
+          current_streak: number
+          freezes_available: number
+          last_active_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_streaks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       redeem_group_invite: { Args: { _code: string }; Returns: string }
     }
     Enums: {
