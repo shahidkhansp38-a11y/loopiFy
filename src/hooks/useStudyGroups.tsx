@@ -74,6 +74,13 @@ export function useStudyGroups() {
       const myGroupsList = groupsWithStatus.filter(g => g.is_member);
       setMyGroups(myGroupsList);
     } catch (error: any) {
+      const isJwtExpired = error?.code === 'PGRST303' || /JWT/i.test(error?.message || '');
+      if (isJwtExpired && !isRetry) {
+        const { data } = await supabase.auth.refreshSession();
+        if (data.session) {
+          return fetchGroups(true);
+        }
+      }
       console.error('Error fetching groups:', error);
       toast({
         variant: 'destructive',
