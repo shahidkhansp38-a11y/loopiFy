@@ -28,7 +28,7 @@ const todayISO = () => {
 };
 
 export function useStreak() {
-  const { user } = useAuth();
+  const { user, sessionVersion } = useAuth();
   const [streak, setStreak] = useState<Streak | null>(null);
   const [goal, setGoal] = useState<Goal>({ daily_minutes_goal: 20, daily_cards_goal: 20 });
   const [today, setToday] = useState<DayActivity | null>(null);
@@ -72,7 +72,7 @@ export function useStreak() {
     };
     setToday(t);
     setLoading(false);
-  }, [user]);
+  }, [user, sessionVersion]);
 
   useEffect(() => {
     load();
