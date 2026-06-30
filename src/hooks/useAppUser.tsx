@@ -12,7 +12,7 @@ export interface AppUser {
 }
 
 export function useAppUser() {
-  const { user } = useAuth();
+  const { user, sessionVersion } = useAuth();
   const { toast } = useToast();
   const [appUser, setAppUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,7 +48,7 @@ export function useAppUser() {
       setAppUser(data as AppUser);
     }
     setLoading(false);
-  }, [user]);
+  }, [user, sessionVersion]);
 
   useEffect(() => {
     fetchAppUser();

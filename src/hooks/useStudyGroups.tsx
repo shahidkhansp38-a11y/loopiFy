@@ -21,10 +21,10 @@ export function useStudyGroups() {
   const [groups, setGroups] = useState<StudyGroup[]>([]);
   const [myGroups, setMyGroups] = useState<StudyGroup[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, sessionVersion } = useAuth();
   const { toast } = useToast();
 
-  const fetchGroups = async () => {
+  const fetchGroups = async (isRetry = false) => {
     if (!user) return;
     
     try {
@@ -74,6 +74,13 @@ export function useStudyGroups() {
       const myGroupsList = groupsWithStatus.filter(g => g.is_member);
       setMyGroups(myGroupsList);
     } catch (error: any) {
+      const isJwtExpired = error?.code === 'PGRST303' || /JWT/i.test(error?.message || '');
+      if (isJwtExpired && !isRetry) {
+        const { data } = await supabase.auth.refreshSession();
+        if (data.session) {
+          return fetchGroups(true);
+        }
+      }
       console.error('Error fetching groups:', error);
       toast({
         variant: 'destructive',
@@ -217,7 +224,7 @@ export function useStudyGroups() {
     if (user) {
       fetchGroups();
     }
-  }, [user]);
+  }, [user, sessionVersion]);
 
   const updateGroupLimit = async (groupId: string, newLimit: number) => {
     if (!user) return false;

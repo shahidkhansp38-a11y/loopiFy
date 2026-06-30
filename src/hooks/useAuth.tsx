@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  sessionVersion: number;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -19,25 +20,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionVersion, setSessionVersion] = useState(0);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+          setSessionVersion((v) => v + 1);
+        }
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Ensure background refresh keeps running even after idle/sleep.
+    supabase.auth.startAutoRefresh();
+
+    // Refresh on focus so a backgrounded tab heals immediately.
+    const onFocus = async () => {
+      const { data } = await supabase.auth.getSession();
+      const exp = data.session?.expires_at ? data.session.expires_at * 1000 : 0;
+      if (!exp || exp - Date.now() < 60_000) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        if (refreshed.session) {
+          setSession(refreshed.session);
+          setUser(refreshed.session.user);
+          setSessionVersion((v) => v + 1);
+        }
+      }
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
@@ -89,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, resetPasswordForEmail, updatePassword }}>
+    <AuthContext.Provider value={{ user, session, loading, sessionVersion, signUp, signIn, signOut, resetPasswordForEmail, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

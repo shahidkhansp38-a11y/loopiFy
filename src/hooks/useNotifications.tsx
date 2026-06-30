@@ -14,7 +14,7 @@ export interface Notification {
 }
 
 export function useNotifications() {
-  const { user } = useAuth();
+  const { user, sessionVersion } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +29,7 @@ export function useNotifications() {
 
     setNotifications((data as any as Notification[]) || []);
     setLoading(false);
-  }, [user]);
+  }, [user, sessionVersion]);
 
   useEffect(() => {
     fetchNotifications();
