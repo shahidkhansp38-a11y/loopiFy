@@ -224,7 +224,7 @@ export function useStudyGroups() {
     if (user) {
       fetchGroups();
     }
-  }, [user]);
+  }, [user, sessionVersion]);
 
   const updateGroupLimit = async (groupId: string, newLimit: number) => {
     if (!user) return false;
