@@ -21,10 +21,10 @@ export function useStudyGroups() {
   const [groups, setGroups] = useState<StudyGroup[]>([]);
   const [myGroups, setMyGroups] = useState<StudyGroup[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, sessionVersion } = useAuth();
   const { toast } = useToast();
 
-  const fetchGroups = async () => {
+  const fetchGroups = async (isRetry = false) => {
     if (!user) return;
     
     try {
