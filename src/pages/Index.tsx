@@ -71,7 +71,7 @@ export default function Index() {
   { icon: GraduationCap, label: 'Learning', color: 'loopify-gradient', route: '/learning' },
   { icon: Layers, label: 'Flashcards', color: 'bg-primary', route: '/flashcards' },
   { icon: Users, label: 'Groups', color: 'bg-secondary', route: '/groups' },
-  { icon: Bot, label: 'AI Tutor', color: 'bg-foreground', route: '/ai-tutor' }];
+  { icon: BookOpen, label: 'Resources', color: 'bg-foreground', route: '/resources' }];
 
 
   return (
