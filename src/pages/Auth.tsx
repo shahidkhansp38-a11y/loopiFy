@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, Eye, EyeOff, Loader2, ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -41,13 +41,18 @@ export default function Auth() {
   
   const { signIn, signUp, resetPasswordForEmail, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+
+  // Safe same-origin relative redirect target (e.g. after OAuth consent bounces here).
+  const rawNext = searchParams.get('next') ?? '';
+  const nextPath = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/';
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate(nextPath, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, nextPath]);
 
   const clearErrors = () => setErrors({});
 
@@ -499,7 +504,7 @@ export default function Auth() {
                           onClick={async () => {
                             setIsLoading(true);
                             const result = await lovable.auth.signInWithOAuth('google', {
-                              redirect_uri: window.location.origin,
+                              redirect_uri: window.location.origin + nextPath,
                             });
                             if (result.error) {
                               toast({
