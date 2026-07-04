@@ -22,6 +22,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Resources = lazy(() => import("./pages/Resources"));
 const Flashcards = lazy(() => import("./pages/Flashcards"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const AppContent = () => {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/flashcards" element={<Flashcards />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
