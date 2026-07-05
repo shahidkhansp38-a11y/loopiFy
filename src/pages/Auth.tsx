@@ -343,6 +343,30 @@ export default function Auth() {
                 </p>
               </motion.div>
 
+              {/* Channel toggle (Email / Phone) — hidden in forgot-password mode */}
+              {mode !== 'forgot' && (
+                <div className="mb-5 grid grid-cols-2 gap-1 p-1 bg-muted rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => switchChannel('email')}
+                    className={`h-10 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                      channel === 'email' ? 'bg-card text-foreground loopify-shadow' : 'text-muted-foreground'
+                    }`}
+                  >
+                    <Mail className="w-4 h-4" /> Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => switchChannel('phone')}
+                    className={`h-10 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                      channel === 'phone' ? 'bg-card text-foreground loopify-shadow' : 'text-muted-foreground'
+                    }`}
+                  >
+                    <Phone className="w-4 h-4" /> Phone
+                  </button>
+                </div>
+              )}
+
               {/* Error Message */}
               <AnimatePresence>
                 {errors.form && (
