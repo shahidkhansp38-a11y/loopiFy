@@ -27,8 +27,12 @@ const signupSchema = z.object({
 });
 
 type AuthMode = 'login' | 'signup' | 'forgot';
+type AuthChannel = 'email' | 'phone';
+
+const phoneSchema = z.string().regex(/^\+[1-9]\d{7,14}$/, 'Enter phone in E.164 format, e.g. +14155551234');
 
 export default function Auth() {
+  const [channel, setChannel] = useState<AuthChannel>('email');
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,6 +44,11 @@ export default function Auth() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [shake, setShake] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  // Phone/OTP state
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   
   const { signIn, signUp, resetPasswordForEmail, user } = useAuth();
   const navigate = useNavigate();
