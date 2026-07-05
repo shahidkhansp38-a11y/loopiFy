@@ -695,6 +695,7 @@ export default function Auth() {
                   </>
                 )}
               </form>
+              )}
 
               {/* Switch Mode */}
               {!(mode === 'forgot' && resetSent) && (
