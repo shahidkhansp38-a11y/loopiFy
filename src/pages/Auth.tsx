@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, Eye, EyeOff, Loader2, ArrowLeft, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Loader2, Sparkles, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { lovable } from '@/integrations/lovable';
@@ -25,8 +27,12 @@ const signupSchema = z.object({
 });
 
 type AuthMode = 'login' | 'signup' | 'forgot';
+type AuthChannel = 'email' | 'phone';
+
+const phoneSchema = z.string().regex(/^\+[1-9]\d{7,14}$/, 'Enter phone in E.164 format, e.g. +14155551234');
 
 export default function Auth() {
+  const [channel, setChannel] = useState<AuthChannel>('email');
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,6 +44,11 @@ export default function Auth() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [shake, setShake] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  // Phone/OTP state
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   
   const { signIn, signUp, resetPasswordForEmail, user } = useAuth();
   const navigate = useNavigate();
@@ -53,6 +64,60 @@ export default function Auth() {
       navigate(nextPath, { replace: true });
     }
   }, [user, navigate, nextPath]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
+
+  const sendOtp = async () => {
+    clearErrors();
+    const parsed = phoneSchema.safeParse(phone);
+    if (!parsed.success) {
+      setErrors({ phone: parsed.error.errors[0].message });
+      triggerShake();
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({ phone });
+    setIsLoading(false);
+    if (error) {
+      setErrors({ form: error.message });
+      triggerShake();
+      toast({ variant: 'destructive', title: 'Could not send code', description: error.message });
+      return;
+    }
+    setOtpSent(true);
+    setResendCooldown(30);
+    toast({ title: 'Code sent', description: `We sent a 6-digit code to ${phone}` });
+  };
+
+  const verifyOtp = async () => {
+    clearErrors();
+    if (otp.length !== 6) {
+      setErrors({ otp: 'Enter the 6-digit code' });
+      triggerShake();
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: 'sms' });
+    setIsLoading(false);
+    if (error) {
+      setErrors({ form: error.message });
+      triggerShake();
+      toast({ variant: 'destructive', title: 'Verification failed', description: error.message });
+      return;
+    }
+    toast({ title: 'Welcome!', description: 'You are now signed in.' });
+  };
+
+  const switchChannel = (c: AuthChannel) => {
+    setChannel(c);
+    clearErrors();
+    setOtp('');
+    setOtpSent(false);
+  };
 
   const clearErrors = () => setErrors({});
 
@@ -278,6 +343,30 @@ export default function Auth() {
                 </p>
               </motion.div>
 
+              {/* Channel toggle (Email / Phone) — hidden in forgot-password mode */}
+              {mode !== 'forgot' && (
+                <div className="mb-5 grid grid-cols-2 gap-1 p-1 bg-muted rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => switchChannel('email')}
+                    className={`h-10 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                      channel === 'email' ? 'bg-card text-foreground loopify-shadow' : 'text-muted-foreground'
+                    }`}
+                  >
+                    <Mail className="w-4 h-4" /> Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => switchChannel('phone')}
+                    className={`h-10 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                      channel === 'phone' ? 'bg-card text-foreground loopify-shadow' : 'text-muted-foreground'
+                    }`}
+                  >
+                    <Phone className="w-4 h-4" /> Phone
+                  </button>
+                </div>
+              )}
+
               {/* Error Message */}
               <AnimatePresence>
                 {errors.form && (
@@ -292,7 +381,81 @@ export default function Auth() {
                 )}
               </AnimatePresence>
 
-              {/* Form */}
+              {/* Phone / OTP form */}
+              {channel === 'phone' && mode !== 'forgot' ? (
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+                      <Input
+                        type="tel"
+                        inputMode="tel"
+                        placeholder="+14155551234"
+                        value={phone}
+                        onChange={(e) => {
+                          setPhone(e.target.value.trim());
+                          if (errors.phone) clearErrors();
+                        }}
+                        disabled={otpSent}
+                        className={`pl-12 h-14 rounded-xl border-2 text-base transition-all ${
+                          errors.phone ? 'border-destructive focus:border-destructive' : 'border-input focus:border-primary'
+                        }`}
+                      />
+                    </div>
+                    {errors.phone && <p className="text-sm text-destructive ml-1">{errors.phone}</p>}
+                    <p className="text-xs text-muted-foreground ml-1">Include country code (E.164 format)</p>
+                  </div>
+
+                  {otpSent && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Verification code</label>
+                      <div className="flex justify-center">
+                        <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      {errors.otp && <p className="text-sm text-destructive text-center">{errors.otp}</p>}
+                      <div className="flex items-center justify-between text-sm">
+                        <button
+                          type="button"
+                          onClick={() => { setOtpSent(false); setOtp(''); }}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          Change number
+                        </button>
+                        <button
+                          type="button"
+                          disabled={resendCooldown > 0 || isLoading}
+                          onClick={sendOtp}
+                          className="text-primary hover:text-primary/80 disabled:text-muted-foreground disabled:cursor-not-allowed"
+                        >
+                          {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    type="button"
+                    onClick={otpSent ? verifyOtp : sendOtp}
+                    disabled={isLoading}
+                    className="w-full h-14 rounded-xl text-lg font-semibold loopify-gradient hover:opacity-90 transition-opacity loopify-shadow"
+                  >
+                    {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : otpSent ? 'VERIFY & CONTINUE' : 'SEND CODE'}
+                  </Button>
+
+                  <p className="text-xs text-center text-muted-foreground">
+                    New here? Signing in with your phone will create your account automatically.
+                  </p>
+                </div>
+              ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <AnimatePresence mode="wait">
                   {mode === 'signup' && (
@@ -532,6 +695,7 @@ export default function Auth() {
                   </>
                 )}
               </form>
+              )}
 
               {/* Switch Mode */}
               {!(mode === 'forgot' && resetSent) && (

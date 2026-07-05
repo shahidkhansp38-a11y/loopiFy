@@ -120,7 +120,8 @@ export default function Profile() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
+    // Hard redirect ensures every hook/subscription resets and no stale session survives.
+    window.location.replace('/auth');
   };
 
   const handleDeactivate = async () => {

@@ -46,7 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Refresh on focus so a backgrounded tab heals immediately.
     const onFocus = async () => {
       const { data } = await supabase.auth.getSession();
-      const exp = data.session?.expires_at ? data.session.expires_at * 1000 : 0;
+      // If there's no session, don't try to refresh — avoids "Refresh Token Not Found" zombie calls after sign-out.
+      if (!data.session) return;
+      const exp = data.session.expires_at ? data.session.expires_at * 1000 : 0;
       if (!exp || exp - Date.now() < 60_000) {
         const { data: refreshed } = await supabase.auth.refreshSession();
         if (refreshed.session) {
@@ -93,7 +95,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (e) {
+      // Ignore — we still clear local state below.
+    }
+    setSession(null);
+    setUser(null);
   };
 
   const resetPasswordForEmail = async (email: string) => {
