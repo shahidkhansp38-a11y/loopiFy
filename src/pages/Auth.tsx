@@ -65,6 +65,60 @@ export default function Auth() {
     }
   }, [user, navigate, nextPath]);
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
+
+  const sendOtp = async () => {
+    clearErrors();
+    const parsed = phoneSchema.safeParse(phone);
+    if (!parsed.success) {
+      setErrors({ phone: parsed.error.errors[0].message });
+      triggerShake();
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({ phone });
+    setIsLoading(false);
+    if (error) {
+      setErrors({ form: error.message });
+      triggerShake();
+      toast({ variant: 'destructive', title: 'Could not send code', description: error.message });
+      return;
+    }
+    setOtpSent(true);
+    setResendCooldown(30);
+    toast({ title: 'Code sent', description: `We sent a 6-digit code to ${phone}` });
+  };
+
+  const verifyOtp = async () => {
+    clearErrors();
+    if (otp.length !== 6) {
+      setErrors({ otp: 'Enter the 6-digit code' });
+      triggerShake();
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: 'sms' });
+    setIsLoading(false);
+    if (error) {
+      setErrors({ form: error.message });
+      triggerShake();
+      toast({ variant: 'destructive', title: 'Verification failed', description: error.message });
+      return;
+    }
+    toast({ title: 'Welcome!', description: 'You are now signed in.' });
+  };
+
+  const switchChannel = (c: AuthChannel) => {
+    setChannel(c);
+    clearErrors();
+    setOtp('');
+    setOtpSent(false);
+  };
+
   const clearErrors = () => setErrors({});
 
   const triggerShake = () => {
