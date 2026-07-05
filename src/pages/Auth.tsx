@@ -381,7 +381,81 @@ export default function Auth() {
                 )}
               </AnimatePresence>
 
-              {/* Form */}
+              {/* Phone / OTP form */}
+              {channel === 'phone' && mode !== 'forgot' ? (
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+                      <Input
+                        type="tel"
+                        inputMode="tel"
+                        placeholder="+14155551234"
+                        value={phone}
+                        onChange={(e) => {
+                          setPhone(e.target.value.trim());
+                          if (errors.phone) clearErrors();
+                        }}
+                        disabled={otpSent}
+                        className={`pl-12 h-14 rounded-xl border-2 text-base transition-all ${
+                          errors.phone ? 'border-destructive focus:border-destructive' : 'border-input focus:border-primary'
+                        }`}
+                      />
+                    </div>
+                    {errors.phone && <p className="text-sm text-destructive ml-1">{errors.phone}</p>}
+                    <p className="text-xs text-muted-foreground ml-1">Include country code (E.164 format)</p>
+                  </div>
+
+                  {otpSent && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Verification code</label>
+                      <div className="flex justify-center">
+                        <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      {errors.otp && <p className="text-sm text-destructive text-center">{errors.otp}</p>}
+                      <div className="flex items-center justify-between text-sm">
+                        <button
+                          type="button"
+                          onClick={() => { setOtpSent(false); setOtp(''); }}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          Change number
+                        </button>
+                        <button
+                          type="button"
+                          disabled={resendCooldown > 0 || isLoading}
+                          onClick={sendOtp}
+                          className="text-primary hover:text-primary/80 disabled:text-muted-foreground disabled:cursor-not-allowed"
+                        >
+                          {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    type="button"
+                    onClick={otpSent ? verifyOtp : sendOtp}
+                    disabled={isLoading}
+                    className="w-full h-14 rounded-xl text-lg font-semibold loopify-gradient hover:opacity-90 transition-opacity loopify-shadow"
+                  >
+                    {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : otpSent ? 'VERIFY & CONTINUE' : 'SEND CODE'}
+                  </Button>
+
+                  <p className="text-xs text-center text-muted-foreground">
+                    New here? Signing in with your phone will create your account automatically.
+                  </p>
+                </div>
+              ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <AnimatePresence mode="wait">
                   {mode === 'signup' && (
