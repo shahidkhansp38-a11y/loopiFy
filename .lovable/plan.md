@@ -1,30 +1,28 @@
-## Plan: Phone/OTP sign-in + fix sign-out redirect
+# Plan: Per-group video call button on group cards
 
-### 1) Fix Sign Out on Profile
-Root cause: `handleSignOut` calls `signOut()` then `navigate('/auth')`, but the `useAuth` `onAuthStateChange` listener fires `SIGNED_OUT` which clears `user`. The `Profile` guard effect (`if (!user) navigate('/auth')`) then runs, but because Supabase sometimes retains a stale refresh token attempt (visible in logs: "Invalid Refresh Token"), the session can transiently repopulate on focus, causing "signs out then auto-signs back in" behavior. Also, `signOut()` is called without `{ scope: 'global' }`, and errors are swallowed silently.
+## Goal
+Restore access to the video call feature by adding a call button on each **member** group card in the Groups list. Tapping it opens the existing `/video-call` page scoped to that group's room, so all members joining from the same group land in the same session.
 
-Fixes:
-- Change `signOut` in `src/hooks/useAuth.tsx` to explicitly clear local state (`setUser(null)`, `setSession(null)`) and call `supabase.auth.signOut({ scope: 'local' })` with error handling.
-- In `Profile.tsx` `handleSignOut`, use `window.location.replace('/auth')` instead of `navigate` — this forces a full reload, guaranteeing all in-memory hooks/subscriptions reset and no stale session survives.
-- Guard the focus/visibility refresh handler in `useAuth`: skip auto-refresh when there is no current session (prevents zombie refresh attempts that log the "Refresh Token Not Found" error).
+## Changes
 
-### 2) Add Phone + OTP sign-in to Auth page
-Add a third auth method alongside Email and Google on `src/pages/Auth.tsx`:
-- New toggle at the top of the login/signup card: "Email" | "Phone".
-- Phone mode UI:
-  - Step 1: Country code + phone input → "Send code" → calls `supabase.auth.signInWithOtp({ phone })`.
-  - Step 2: 6-digit OTP input (using existing `input-otp` component) → "Verify" → calls `supabase.auth.verifyOtp({ phone, token, type: 'sms' })`.
-  - "Resend code" link with 30s cooldown.
-- Validate E.164 format with zod (`^\+[1-9]\d{7,14}$`).
-- Show toasts for send/verify success/failure; on success the existing `useAuth` listener redirects via the `user` effect.
-- Phone tab shown for both login and signup (Supabase phone OTP auto-creates the user on first verify).
-- Forgot-password link hidden in phone mode.
+### 1) `src/pages/Groups.tsx`
+- On each group card in the list, for groups where `group.is_member === true`, add a small circular icon button using `Video` from `lucide-react`, placed just before the existing "Open" button.
+- Click handler: `e.stopPropagation()` then `navigate(\`/video-call?groupId=${group.id}&name=${encodeURIComponent(group.name)}\`)`.
+- Non-member cards continue to show Join/Full as today (no call button).
+- Tooltip / `aria-label`: "Start video call".
 
-### Files to edit
-- `src/hooks/useAuth.tsx` — harden signOut + focus refresh guard.
-- `src/pages/Profile.tsx` — hard-redirect after sign out.
-- `src/pages/Auth.tsx` — add Email/Phone tabs and OTP flow.
+### 2) `src/pages/VideoCall.tsx`
+- Read `groupId` and `name` from `useSearchParams()`.
+- If `groupId` present:
+  - Show the group name in the header instead of the generic "Study Session" (fallback stays "Study Session").
+  - Use the `groupId` as the room identifier (stored in local state / passed to the future signalling layer). This defines the "per-group room" contract even though the current UI is still a mocked video grid.
+- No change to controls, participants mock, or styling.
 
-### Not in scope
-- No DB migrations. Phone provider is already enabled in backend.
-- No changes to Google OAuth flow, MCP, or other pages.
+## Out of scope
+- No real WebRTC / signalling implementation — the page remains the current mock, just group-scoped and reachable from Groups.
+- No changes to `GroupChat` header, home screen shortcut, or DB schema.
+- No new tables or RLS changes.
+
+## Files touched
+- `src/pages/Groups.tsx`
+- `src/pages/VideoCall.tsx`

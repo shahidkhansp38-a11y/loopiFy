@@ -9,7 +9,9 @@ import {
   Search,
   Loader2,
   UserPlus,
-  LogIn
+  LogIn,
+  Video
+
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -195,14 +197,29 @@ export default function Groups() {
                     </div>
 
                     {group.is_member ? (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-primary"
-                      >
-                        <LogIn className="w-4 h-4 mr-1" />
-                        Open
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label="Start video call"
+                          title="Start video call"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/video-call?groupId=${group.id}&name=${encodeURIComponent(group.name)}`);
+                          }}
+                          className="text-primary rounded-full h-9 w-9"
+                        >
+                          <Video className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-primary"
+                        >
+                          <LogIn className="w-4 h-4 mr-1" />
+                          Open
+                        </Button>
+                      </div>
                     ) : (group.member_count ?? 0) >= (group.max_members || 6) ? (
                       <Button size="sm" variant="ghost" disabled className="text-muted-foreground">
                         Full
