@@ -10,7 +10,9 @@ import {
   Loader2,
   UserPlus,
   LogIn,
-  Video
+  Video,
+  LogOut
+
 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,7 +32,7 @@ export default function Groups() {
   
   const { user, loading: authLoading } = useAuth();
   const { isTeacher } = useAppUser();
-  const { groups, myGroups, loading, createGroup, joinGroup, updateGroupLimit } = useStudyGroups();
+  const { groups, myGroups, loading, createGroup, joinGroup, leaveGroup, updateGroupLimit } = useStudyGroups();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -218,6 +220,19 @@ export default function Groups() {
                         >
                           <LogIn className="w-4 h-4 mr-1" />
                           Open
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label="Leave group"
+                          title="Leave group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm(`Leave "${group.name}"?`)) leaveGroup(group.id);
+                          }}
+                          className="text-destructive rounded-full h-9 w-9"
+                        >
+                          <LogOut className="w-4 h-4" />
                         </Button>
                       </div>
                     ) : (group.member_count ?? 0) >= (group.max_members || 6) ? (
