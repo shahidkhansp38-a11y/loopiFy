@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Video, VideoOff, Mic, MicOff, PhoneOff, Users, Settings, MessageSquare, MonitorUp, Grid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,10 @@ export default function VideoCall() {
   
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const groupId = searchParams.get('groupId');
+  const groupName = searchParams.get('name');
+  const roomTitle = groupName || 'Study Session';
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -46,10 +50,10 @@ export default function VideoCall() {
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
           <div>
-            <h1 className="font-semibold text-white">Study Session</h1>
+            <h1 className="font-semibold text-white">{roomTitle}</h1>
             <p className="text-xs text-white/60 flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              Live • {participants.length} participants
+              Live • {participants.length} participants{groupId ? ' • Group room' : ''}
             </p>
           </div>
         </div>
