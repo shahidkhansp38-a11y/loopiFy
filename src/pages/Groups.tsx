@@ -32,7 +32,7 @@ export default function Groups() {
   
   const { user, loading: authLoading } = useAuth();
   const { isTeacher } = useAppUser();
-  const { groups, myGroups, loading, createGroup, joinGroup, leaveGroup, updateGroupLimit } = useStudyGroups();
+  const { groups, myGroups, loading, createGroup, joinGroup, leaveGroup, updateGroupLimit, updateGroupDetails } = useStudyGroups();
   const navigate = useNavigate();
   const { toast } = useToast();
 
