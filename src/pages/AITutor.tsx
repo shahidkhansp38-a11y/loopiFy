@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAIConversations, AIMessage } from '@/hooks/useAIConversations';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
 
@@ -64,11 +65,17 @@ export default function AITutor() {
     onDelta: (deltaText: string) => void,
     onDone: () => void
   ) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      toast.error("Please sign in to use the AI Tutor.");
+      throw new Error("Not authenticated");
+    }
     const resp = await fetch(CHAT_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       },
       body: JSON.stringify({ messages: chatMessages }),
     });
