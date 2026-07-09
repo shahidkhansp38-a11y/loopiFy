@@ -256,6 +256,35 @@ export function useStudyGroups() {
     }
   };
 
+  const updateGroupDetails = async (
+    groupId: string,
+    updates: { name?: string; subject?: string }
+  ) => {
+    if (!user) return false;
+    const payload: Record<string, string> = {};
+    if (updates.name !== undefined) payload.name = updates.name.trim();
+    if (updates.subject !== undefined) payload.subject = updates.subject.trim();
+    if (payload.name === '') {
+      toast({ variant: 'destructive', title: 'Error', description: 'Name cannot be empty' });
+      return false;
+    }
+    try {
+      const { error } = await supabase
+        .from('study_groups')
+        .update(payload)
+        .eq('id', groupId)
+        .eq('created_by', user.id);
+      if (error) throw error;
+      toast({ title: 'Updated!', description: 'Group details saved' });
+      await fetchGroups();
+      return true;
+    } catch (error: any) {
+      console.error('Error updating group details:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update group' });
+      return false;
+    }
+  };
+
   return {
     groups,
     myGroups,
@@ -264,6 +293,7 @@ export function useStudyGroups() {
     joinGroup,
     leaveGroup,
     updateGroupLimit,
+    updateGroupDetails,
     refetch: fetchGroups
   };
 }

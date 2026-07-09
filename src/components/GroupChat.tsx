@@ -13,16 +13,20 @@ interface GroupChatProps {
   group: StudyGroup;
   onBack: () => void;
   onUpdateLimit?: (groupId: string, newLimit: number) => Promise<boolean>;
+  onUpdateDetails?: (groupId: string, updates: { name?: string; subject?: string }) => Promise<boolean>;
 }
 
 type Tab = 'chat' | 'qa';
 
 const MEMBER_LIMITS = [6, 10, 15, 25, 50];
 
-export function GroupChat({ group, onBack, onUpdateLimit }: GroupChatProps) {
+export function GroupChat({ group, onBack, onUpdateLimit, onUpdateDetails }: GroupChatProps) {
   const [activeTab, setActiveTab] = useState<Tab>('chat');
   const [showSettings, setShowSettings] = useState(false);
   const [newLimit, setNewLimit] = useState(group.max_members || 6);
+  const [newName, setNewName] = useState(group.name);
+  const [newSubject, setNewSubject] = useState(group.subject || '');
+  const [savingDetails, setSavingDetails] = useState(false);
   const [updatingLimit, setUpdatingLimit] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -57,7 +61,16 @@ export function GroupChat({ group, onBack, onUpdateLimit }: GroupChatProps) {
     setUpdatingLimit(true);
     await onUpdateLimit(group.id, newLimit);
     setUpdatingLimit(false);
-    setShowSettings(false);
+  };
+
+  const detailsChanged =
+    newName.trim() !== group.name || newSubject.trim() !== (group.subject || '');
+
+  const handleUpdateDetails = async () => {
+    if (!onUpdateDetails || !detailsChanged || !newName.trim()) return;
+    setSavingDetails(true);
+    await onUpdateDetails(group.id, { name: newName, subject: newSubject });
+    setSavingDetails(false);
   };
 
   const getInitials = (name: string | null) => {
@@ -141,8 +154,40 @@ export function GroupChat({ group, onBack, onUpdateLimit }: GroupChatProps) {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden border-b border-border/50 bg-card"
           >
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-4">
               <h3 className="text-sm font-semibold text-foreground">Group Settings</h3>
+
+              {onUpdateDetails && (
+                <div className="space-y-3 pb-3 border-b border-border/50">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Group Name</label>
+                    <Input
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      placeholder="Group name"
+                      className="h-9 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Subject</label>
+                    <Input
+                      value={newSubject}
+                      onChange={(e) => setNewSubject(e.target.value)}
+                      placeholder="e.g., Web Development"
+                      className="h-9 rounded-lg text-sm"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleUpdateDetails}
+                    disabled={savingDetails || !detailsChanged || !newName.trim()}
+                    size="sm"
+                    className="loopify-gradient hover:opacity-90"
+                  >
+                    {savingDetails ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save details'}
+                  </Button>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">Member Limit</label>
                 <div className="flex flex-wrap gap-2">

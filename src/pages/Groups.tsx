@@ -32,7 +32,7 @@ export default function Groups() {
   
   const { user, loading: authLoading } = useAuth();
   const { isTeacher } = useAppUser();
-  const { groups, myGroups, loading, createGroup, joinGroup, leaveGroup, updateGroupLimit } = useStudyGroups();
+  const { groups, myGroups, loading, createGroup, joinGroup, leaveGroup, updateGroupLimit, updateGroupDetails } = useStudyGroups();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -63,7 +63,7 @@ export default function Groups() {
   }
 
   if (selectedGroup) {
-    return <GroupChat group={selectedGroup} onBack={() => setSelectedGroup(null)} onUpdateLimit={updateGroupLimit} />;
+    return <GroupChat group={selectedGroup} onBack={() => setSelectedGroup(null)} onUpdateLimit={updateGroupLimit} onUpdateDetails={updateGroupDetails} />;
   }
 
   const displayedGroups = activeTab === 'my' ? myGroups : groups;
