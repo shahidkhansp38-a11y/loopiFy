@@ -61,7 +61,16 @@ export function GroupChat({ group, onBack, onUpdateLimit, onUpdateDetails }: Gro
     setUpdatingLimit(true);
     await onUpdateLimit(group.id, newLimit);
     setUpdatingLimit(false);
-    setShowSettings(false);
+  };
+
+  const detailsChanged =
+    newName.trim() !== group.name || newSubject.trim() !== (group.subject || '');
+
+  const handleUpdateDetails = async () => {
+    if (!onUpdateDetails || !detailsChanged || !newName.trim()) return;
+    setSavingDetails(true);
+    await onUpdateDetails(group.id, { name: newName, subject: newSubject });
+    setSavingDetails(false);
   };
 
   const getInitials = (name: string | null) => {
