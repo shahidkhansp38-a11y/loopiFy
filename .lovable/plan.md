@@ -1,28 +1,70 @@
-# Plan: Per-group video call button on group cards
+## Fix: Realtime topic authorization
 
-## Goal
-Restore access to the video call feature by adding a call button on each **member** group card in the Groups list. Tapping it opens the existing `/video-call` page scoped to that group's room, so all members joining from the same group land in the same session.
+### 1. Migration — replace `realtime.messages` SELECT policy
 
-## Changes
+Drop the current policy and recreate it so each topic pattern is authorized against the specific resource:
 
-### 1) `src/pages/Groups.tsx`
-- On each group card in the list, for groups where `group.is_member === true`, add a small circular icon button using `Video` from `lucide-react`, placed just before the existing "Open" button.
-- Click handler: `e.stopPropagation()` then `navigate(\`/video-call?groupId=${group.id}&name=${encodeURIComponent(group.name)}\`)`.
-- Non-member cards continue to show Join/Full as today (no call button).
-- Tooltip / `aria-label`: "Start video call".
+```sql
+DROP POLICY "Authenticated can subscribe to allowed topics" ON realtime.messages;
 
-### 2) `src/pages/VideoCall.tsx`
-- Read `groupId` and `name` from `useSearchParams()`.
-- If `groupId` present:
-  - Show the group name in the header instead of the generic "Study Session" (fallback stays "Study Session").
-  - Use the `groupId` as the room identifier (stored in local state / passed to the future signalling layer). This defines the "per-group room" contract even though the current UI is still a mocked video grid.
-- No change to controls, participants mock, or styling.
+CREATE POLICY "Authenticated can subscribe to allowed topics"
+ON realtime.messages
+FOR SELECT
+TO authenticated
+USING (
+  CASE
+    -- Group chat: messages-{groupId}
+    WHEN realtime.topic() LIKE 'messages-%' THEN
+      public.is_group_member(auth.uid(), NULLIF(substring(realtime.topic() from 10), '')::uuid)
 
-## Out of scope
-- No real WebRTC / signalling implementation — the page remains the current mock, just group-scoped and reachable from Groups.
-- No changes to `GroupChat` header, home screen shortcut, or DB schema.
-- No new tables or RLS changes.
+    -- Q&A questions list: questions-{groupId}
+    WHEN realtime.topic() LIKE 'questions-%' THEN
+      public.is_group_member(auth.uid(), NULLIF(substring(realtime.topic() from 11), '')::uuid)
 
-## Files touched
-- `src/pages/Groups.tsx`
-- `src/pages/VideoCall.tsx`
+    -- Answers on one question: answers-{questionId} — must be member of that question's group
+    WHEN realtime.topic() LIKE 'answers-%' THEN
+      EXISTS (
+        SELECT 1 FROM public.group_questions q
+        WHERE q.id = NULLIF(substring(realtime.topic() from 9), '')::uuid
+          AND public.is_group_member(auth.uid(), q.group_id)
+      )
+
+    -- Per-user notifications: notifications-{userId}
+    WHEN realtime.topic() LIKE 'notifications-%' THEN
+      auth.uid()::text = NULLIF(substring(realtime.topic() from 15), '')
+
+    ELSE false
+  END
+);
+```
+
+This removes the two `auth.uid() IS NOT NULL`-only branches (`answers-%`, `notifications-realtime`) and replaces them with per-resource checks. Presence/broadcast events on these channels are gated by the same SELECT policy, so unauthorized users can neither subscribe, receive broadcasts, nor see presence.
+
+### 2. Frontend — use per-user notifications channel
+
+**`src/hooks/useNotifications.tsx`** — change:
+
+```ts
+.channel('notifications-realtime')
+```
+
+to:
+
+```ts
+.channel(`notifications-${user.id}`)
+```
+
+No other changes needed. Existing channels are already scoped correctly:
+- `messages-${groupId}` (useMessages) — group-member gated ✓
+- `questions-${groupId}` (useGroupQuestions) — group-member gated ✓
+- `answers-${questionId}` (useGroupQuestions) — now gated by question→group membership ✓
+
+### 3. Verification
+
+- Confirm build passes.
+- Mark the `realtime_messages_answers_notifications_topic_leak` finding as fixed via the security tool with an explanation of the new policy.
+- Update `@security-memory` to note that all realtime topics must be scoped to a resource id and authorized against membership/ownership; no `TRUE` / role-only branches.
+
+### Files changed
+1. New Supabase migration (policy rewrite).
+2. `src/hooks/useNotifications.tsx` (channel name).
