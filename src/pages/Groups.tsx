@@ -81,25 +81,24 @@ export default function Groups() {
         className="sticky top-0 z-50 glass-effect border-b border-border/50"
       >
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate('/')}
-                className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 text-foreground" />
-              </button>
-              <h1 className="text-xl font-bold text-foreground">Study Groups</h1>
-            </div>
-            <Button
-              onClick={handleNewClick}
-              size="sm"
-              className="loopify-gradient hover:opacity-90"
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors"
             >
-              <Plus className="w-4 h-4 mr-1" />
-              New
-            </Button>
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-xl font-bold text-foreground">Study Groups</h1>
           </div>
+
+          {/* Create Group CTA */}
+          <Button
+            onClick={handleNewClick}
+            className="w-full h-12 rounded-xl text-base font-semibold loopify-gradient hover:opacity-90 loopify-shadow mb-4"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Create Study Group
+          </Button>
 
           {/* Search */}
           <div className="relative mb-4">
