@@ -63,7 +63,7 @@ export default function Groups() {
   }
 
   if (selectedGroup) {
-    return <GroupChat group={selectedGroup} onBack={() => setSelectedGroup(null)} onUpdateLimit={updateGroupLimit} />;
+    return <GroupChat group={selectedGroup} onBack={() => setSelectedGroup(null)} onUpdateLimit={updateGroupLimit} onUpdateDetails={updateGroupDetails} />;
   }
 
   const displayedGroups = activeTab === 'my' ? myGroups : groups;
