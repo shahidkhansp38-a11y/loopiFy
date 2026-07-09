@@ -154,8 +154,40 @@ export function GroupChat({ group, onBack, onUpdateLimit, onUpdateDetails }: Gro
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden border-b border-border/50 bg-card"
           >
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-4">
               <h3 className="text-sm font-semibold text-foreground">Group Settings</h3>
+
+              {onUpdateDetails && (
+                <div className="space-y-3 pb-3 border-b border-border/50">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Group Name</label>
+                    <Input
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      placeholder="Group name"
+                      className="h-9 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground">Subject</label>
+                    <Input
+                      value={newSubject}
+                      onChange={(e) => setNewSubject(e.target.value)}
+                      placeholder="e.g., Web Development"
+                      className="h-9 rounded-lg text-sm"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleUpdateDetails}
+                    disabled={savingDetails || !detailsChanged || !newName.trim()}
+                    size="sm"
+                    className="loopify-gradient hover:opacity-90"
+                  >
+                    {savingDetails ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save details'}
+                  </Button>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">Member Limit</label>
                 <div className="flex flex-wrap gap-2">
