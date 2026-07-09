@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAIConversations, AIMessage } from '@/hooks/useAIConversations';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
 
