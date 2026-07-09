@@ -13,16 +13,20 @@ interface GroupChatProps {
   group: StudyGroup;
   onBack: () => void;
   onUpdateLimit?: (groupId: string, newLimit: number) => Promise<boolean>;
+  onUpdateDetails?: (groupId: string, updates: { name?: string; subject?: string }) => Promise<boolean>;
 }
 
 type Tab = 'chat' | 'qa';
 
 const MEMBER_LIMITS = [6, 10, 15, 25, 50];
 
-export function GroupChat({ group, onBack, onUpdateLimit }: GroupChatProps) {
+export function GroupChat({ group, onBack, onUpdateLimit, onUpdateDetails }: GroupChatProps) {
   const [activeTab, setActiveTab] = useState<Tab>('chat');
   const [showSettings, setShowSettings] = useState(false);
   const [newLimit, setNewLimit] = useState(group.max_members || 6);
+  const [newName, setNewName] = useState(group.name);
+  const [newSubject, setNewSubject] = useState(group.subject || '');
+  const [savingDetails, setSavingDetails] = useState(false);
   const [updatingLimit, setUpdatingLimit] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
