@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AnimatePresence } from "framer-motion";
 import SplashScreen from "@/components/SplashScreen";
+import BottomNav from "@/components/BottomNav";
 
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -68,6 +69,7 @@ const AppContent = () => {
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <BottomNav />
         </Suspense>
       )}
     </>
