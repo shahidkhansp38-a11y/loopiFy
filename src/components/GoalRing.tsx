@@ -16,6 +16,7 @@ export function GoalRing({ onClick, size = 56 }: Props) {
   const r = (size - 8) / 2;
   const c = 2 * Math.PI * r;
   const offset = c * (1 - pct);
+  const gid = `ring-grad-${size}`;
 
   return (
     <motion.button
@@ -25,22 +26,31 @@ export function GoalRing({ onClick, size = 56 }: Props) {
       style={{ width: size, height: size }}
     >
       <svg width={size} height={size} className="-rotate-90">
+        <defs>
+          <linearGradient id={gid} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#6366F1" />
+            <stop offset="60%" stopColor="#8B5CF6" />
+            <stop offset="100%" stopColor="#06B6D4" />
+          </linearGradient>
+        </defs>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth="6" />
         <motion.circle
           cx={size / 2}
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="hsl(var(--primary))"
+          stroke={`url(#${gid})`}
           strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={c}
           initial={{ strokeDashoffset: c }}
           animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
         />
       </svg>
-      <span className="absolute text-xs font-bold text-foreground">{Math.round(pct * 100)}%</span>
+      <span className="absolute text-xs font-bold text-foreground font-display">
+        {Math.round(pct * 100)}%
+      </span>
     </motion.button>
   );
 }
