@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  Camera, 
-  User, 
+import {
+  ArrowLeft,
+  Camera,
+  User,
   Loader2,
   Save,
   Sparkles,
@@ -12,10 +12,15 @@ import {
   LogOut,
   Trash2,
   PauseCircle,
-  AlertTriangle
+  AlertTriangle,
+  Moon,
+  Sun,
+  Palette,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { StreakHeatmap } from '@/components/StreakHeatmap';
+import { useTheme } from '@/hooks/useTheme';
+import { Switch } from '@/components/ui/switch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +43,7 @@ export default function Profile() {
   const { user, loading: authLoading, updatePassword, signOut } = useAuth();
   const { profile, loading: profileLoading, updating, updateProfile, uploadAvatar } = useProfile();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [fullName, setFullName] = useState('');
