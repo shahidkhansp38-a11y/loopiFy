@@ -86,7 +86,7 @@ export default function Index() {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}

@@ -1,6 +1,7 @@
 import { Home, Users, GraduationCap, Bot, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { BOTTOM_NAV_HIDDEN } from './AppLayout';
 
 const TABS = [
   { path: '/', label: 'Home', icon: Home },
@@ -10,13 +11,11 @@ const TABS = [
   { path: '/profile', label: 'Profile', icon: User },
 ];
 
-const HIDDEN = ['/welcome', '/auth', '/onboarding', '/reset-password', '/video-call', '/.lovable/oauth/consent'];
-
 export default function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  if (HIDDEN.some((p) => location.pathname.startsWith(p))) return null;
+  if (BOTTOM_NAV_HIDDEN.some((p) => location.pathname.startsWith(p))) return null;
 
   const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
@@ -25,16 +24,18 @@ export default function BottomNav() {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       try { (navigator as Navigator).vibrate?.(8); } catch {}
     }
-    navigate(path);
+    if (!isActive(path)) navigate(path);
   };
 
   return (
     <nav
-      className="fixed z-50 left-1/2 -translate-x-1/2 bottom-3 w-[min(560px,calc(100%-1.5rem))]"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed z-50 left-1/2 -translate-x-1/2 w-[min(560px,calc(100%-1.5rem))] pointer-events-none"
+      style={{
+        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
+      }}
       aria-label="Primary"
     >
-      <div className="glass shadow-float rounded-full px-2 py-2 flex items-center justify-between gap-1">
+      <div className="glass shadow-float rounded-full px-2 py-2 flex items-center justify-between gap-1 pointer-events-auto border border-white/40">
         {TABS.map((t) => {
           const active = isActive(t.path);
           const Icon = t.icon;
@@ -43,7 +44,7 @@ export default function BottomNav() {
               key={t.path}
               onClick={() => handleTap(t.path)}
               whileTap={{ scale: 0.92 }}
-              className="relative flex-1 flex items-center justify-center outline-none"
+              className="relative flex-1 flex items-center justify-center outline-none min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/50 rounded-full"
               aria-label={t.label}
               aria-current={active ? 'page' : undefined}
             >
