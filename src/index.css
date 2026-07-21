@@ -49,9 +49,9 @@
 
     --radius: 1.25rem;
 
-    /* Floating bottom nav reserved space (height + safe area). */
-    --bottom-nav-height: 76px;
-    --bottom-nav-safe: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 16px);
+    /* Fixed bottom nav reserved space (height + safe area). */
+    --bottom-nav-height: 64px;
+    --bottom-nav-safe: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
 
     /* LoopiFy Custom Properties */
     --loopify-gradient-start: 217 91% 60%;

@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  Camera, 
-  User, 
+import {
+  ArrowLeft,
+  Camera,
+  User,
   Loader2,
   Save,
   Sparkles,
@@ -12,10 +12,15 @@ import {
   LogOut,
   Trash2,
   PauseCircle,
-  AlertTriangle
+  AlertTriangle,
+  Moon,
+  Sun,
+  Palette,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { StreakHeatmap } from '@/components/StreakHeatmap';
+import { useTheme } from '@/hooks/useTheme';
+import { Switch } from '@/components/ui/switch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +43,7 @@ export default function Profile() {
   const { user, loading: authLoading, updatePassword, signOut } = useAuth();
   const { profile, loading: profileLoading, updating, updateProfile, uploadAvatar } = useProfile();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [fullName, setFullName] = useState('');
@@ -379,6 +385,39 @@ export default function Profile() {
               </>
             )}
           </Button>
+        </motion.section>
+
+        {/* Appearance */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.33 }}
+          className="space-y-3 pt-4 border-t border-border"
+        >
+          <Label className="text-base font-semibold flex items-center gap-2">
+            <Palette className="w-4 h-4 text-primary" />
+            Appearance
+          </Label>
+          <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card p-4">
+            <div className="flex items-center gap-3">
+              {theme === 'dark' ? (
+                <Moon className="w-5 h-5 text-primary" />
+              ) : (
+                <Sun className="w-5 h-5 text-primary" />
+              )}
+              <div>
+                <p className="text-sm font-medium">Dark mode</p>
+                <p className="text-xs text-muted-foreground">
+                  {theme === 'dark' ? 'On — easier on the eyes at night' : 'Off — bright and clear'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={theme === 'dark'}
+              onCheckedChange={toggleTheme}
+              aria-label="Toggle dark mode"
+            />
+          </div>
         </motion.section>
 
         {/* Account Actions */}

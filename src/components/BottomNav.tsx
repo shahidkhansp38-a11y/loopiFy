@@ -29,58 +29,46 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed z-50 left-1/2 -translate-x-1/2 w-[min(560px,calc(100%-1.5rem))] pointer-events-none"
-      style={{
-        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
-      }}
+      className="fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       aria-label="Primary"
     >
-      <div className="glass shadow-float rounded-full px-2 py-2 flex items-center justify-between gap-1 pointer-events-auto border border-white/40">
+      <ul className="flex items-stretch justify-around w-full max-w-3xl mx-auto px-1">
         {TABS.map((t) => {
           const active = isActive(t.path);
           const Icon = t.icon;
           return (
-            <motion.button
-              key={t.path}
-              onClick={() => handleTap(t.path)}
-              whileTap={{ scale: 0.92 }}
-              className="relative flex-1 flex items-center justify-center outline-none min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary/50 rounded-full"
-              aria-label={t.label}
-              aria-current={active ? 'page' : undefined}
-            >
-              {active && (
-                <motion.span
-                  layoutId="nav-pill"
-                  transition={{ type: 'spring', stiffness: 500, damping: 34 }}
-                  className="absolute inset-0 rounded-full grad-brand shadow-glow"
-                />
-              )}
-              <span
-                className={`relative z-10 flex items-center justify-center gap-1.5 h-11 px-3 rounded-full transition-colors ${
-                  active ? 'text-white' : 'text-muted-foreground'
-                }`}
+            <li key={t.path} className="flex-1">
+              <motion.button
+                onClick={() => handleTap(t.path)}
+                whileTap={{ scale: 0.94 }}
+                className="relative w-full h-16 flex flex-col items-center justify-center gap-1 outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                aria-label={t.label}
+                aria-current={active ? 'page' : undefined}
               >
-                <motion.span
-                  animate={{ scale: active ? 1.12 : 1 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                >
-                  <Icon className="w-5 h-5" strokeWidth={active ? 2.4 : 2} />
-                </motion.span>
                 {active && (
                   <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    transition={{ duration: 0.2 }}
-                    className="text-xs font-semibold whitespace-nowrap overflow-hidden"
-                  >
-                    {t.label}
-                  </motion.span>
+                    layoutId="nav-indicator"
+                    transition={{ type: 'spring', stiffness: 500, damping: 34 }}
+                    className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-10 rounded-full grad-brand"
+                  />
                 )}
-              </span>
-            </motion.button>
+                <Icon
+                  className={`w-5 h-5 transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`}
+                  strokeWidth={active ? 2.4 : 2}
+                />
+                <span
+                  className={`text-[11px] font-medium transition-colors ${
+                    active ? 'text-primary' : 'text-muted-foreground'
+                  }`}
+                >
+                  {t.label}
+                </span>
+              </motion.button>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </nav>
   );
 }
