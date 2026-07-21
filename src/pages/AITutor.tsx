@@ -496,7 +496,7 @@ export default function AITutor() {
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="sticky bottom-0 glass-effect border-t border-border/50 p-4"
+          className="sticky bottom-nav-offset glass-effect border-t border-border/50 p-4"
         >
           <form onSubmit={handleSend} className="flex gap-2">
             <Input
