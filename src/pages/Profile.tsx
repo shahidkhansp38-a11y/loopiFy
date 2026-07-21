@@ -387,6 +387,39 @@ export default function Profile() {
           </Button>
         </motion.section>
 
+        {/* Appearance */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.33 }}
+          className="space-y-3 pt-4 border-t border-border"
+        >
+          <Label className="text-base font-semibold flex items-center gap-2">
+            <Palette className="w-4 h-4 text-primary" />
+            Appearance
+          </Label>
+          <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card p-4">
+            <div className="flex items-center gap-3">
+              {theme === 'dark' ? (
+                <Moon className="w-5 h-5 text-primary" />
+              ) : (
+                <Sun className="w-5 h-5 text-primary" />
+              )}
+              <div>
+                <p className="text-sm font-medium">Dark mode</p>
+                <p className="text-xs text-muted-foreground">
+                  {theme === 'dark' ? 'On — easier on the eyes at night' : 'Off — bright and clear'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={theme === 'dark'}
+              onCheckedChange={toggleTheme}
+              aria-label="Toggle dark mode"
+            />
+          </div>
+        </motion.section>
+
         {/* Account Actions */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
