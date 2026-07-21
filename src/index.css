@@ -239,3 +239,13 @@
   0%, 100% { box-shadow: 0 20px 60px -15px hsl(239 84% 60% / 0.45); }
   50% { box-shadow: 0 24px 70px -12px hsl(258 90% 66% / 0.55); }
 }
+@layer utilities {
+  /* Reserve space for the floating bottom nav on every scrollable page. */
+  .pb-bottom-nav {
+    padding-bottom: var(--bottom-nav-safe);
+  }
+  /* Same, but for fixed/absolute bottom-anchored elements (chat input, CTAs). */
+  .bottom-nav-offset {
+    bottom: var(--bottom-nav-safe);
+  }
+}
