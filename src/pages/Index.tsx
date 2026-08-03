@@ -274,7 +274,7 @@ export default function Index() {
         </div>
       </motion.header>
 
-      <main className="mx-auto max-w-3xl px-4 pt-4 pb-2 space-y-7">
+      <main className="mx-auto max-w-3xl px-4 pt-4 pb-6 space-y-7">
         {/* 1. Greeting */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
