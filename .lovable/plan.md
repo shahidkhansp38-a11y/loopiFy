@@ -1,113 +1,60 @@
-# LoopiFy Premium Redesign Plan
+# Home Dashboard Redesign Plan
 
-Redesign the visual layer only. All hooks, routing, Supabase calls, MCP, and business logic stay untouched. Only files touched are CSS tokens, the Home page, existing home components, and a new floating bottom nav mounted app-wide.
+Scope: **Only `src/pages/Index.tsx`** plus small presentational helpers. No changes to auth, Supabase, routing, or BottomNav. All existing hooks (`useAuth`, `useAppUser`, `useStudyGroups`, `useNotifications`, `useStreak`, `useLearning`, `useAssignments`, `useFlashcards`) remain the data source.
 
-## 1. New Design System (`src/index.css` + `tailwind.config.ts`)
+## Section-by-section build
 
-Rewrite CSS tokens to the Gen Z palette (kept in HSL for shadcn compatibility):
+1. **Greeting header** — keep existing sticky glass header (avatar, search, notifications). Below it, add a hero greeting block: time-based "Good morning/afternoon/evening", user's first name in large Space Grotesk display type, rotating motivational subtitle.
 
-```
---primary: 239 84% 67%      /* #6366F1 Indigo */
---secondary: 258 90% 66%    /* #8B5CF6 Violet */
---accent: 189 94% 43%       /* #06B6D4 Cyan */
---success: 142 71% 45%      /* #22C55E */
---warning: 38 92% 50%       /* #F59E0B */
---destructive: 0 84% 60%    /* #EF4444 */
---background: 210 40% 98%   /* #F8FAFC */
---card: 0 0% 100%
---foreground: 222 47% 11%   /* #0F172A */
---muted-foreground: 215 16% 47% /* #64748B */
---radius: 1.25rem           /* 20px baseline */
-```
+2. **Study Streak Card** — replace current "Today's Mission" with a richer streak card:
+   - 🔥 Flame + current streak number (from `useStreak`)
+   - 7-day dot row showing which days this week were active (derived from `history`)
+   - Today's goal completion (minutes + cards) with the existing `GoalRing`
+   - Gradient purple/violet background, glass overlay
 
-Dark theme mirrors above with `--background: 222 47% 6%`, `--card: 222 33% 12%`.
+3. **Continue Learning** — pull last-opened lecture from `useLearning` (fallback: most recent group). Single wide card:
+   - Course/group name + lecture title
+   - Progress bar (uses `lecture_progress` if available, else group progress heuristic)
+   - "Continue" CTA → `/learning/{groupId}`
 
-New utilities:
-- `.grad-brand` → `linear-gradient(135deg, #6366F1, #8B5CF6)`
-- `.grad-accent` → `linear-gradient(135deg, #8B5CF6, #06B6D4)`
-- `.glass` → `backdrop-blur(24px) saturate(180%) bg-white/70` (dark: `bg-slate-900/60`) + subtle border
-- `.card-premium` → white/dark card, 22px radius, layered shadow `0 8px 32px -12px rgba(15,23,42,0.12), 0 2px 6px rgba(15,23,42,0.04)`
-- `.shadow-float` for the floating nav
+4. **Quick Actions (2×2 grid)** — AI Tutor, Study Groups, Flashcards, Notes (Notes → `/resources`). Each card: gradient tint, lucide icon in rounded square, label + subtitle, `whileTap` scale + hover lift.
 
-Add tailwind keyframes: `float-in` (translateY + opacity), `shimmer`, `pulse-glow` for AI card.
+5. **Upcoming Classes** — today's scheduled items. Data source: nearest available signal is `assignments` due today + any lectures added today from `useLearning`. Card list with subject, time, teacher name (group creator), and "Join" button routing to `/video-call?groupId=...` for group sessions or `/learning/{groupId}` for lectures. Empty state: "No classes today — enjoy the break".
 
-Typography: keep Inter for body; add **Space Grotesk** for display headings (via existing Google Fonts import). Use `font-display` utility class.
+6. **Recommended Resources** — horizontal rail of items pulled from lectures/resources of the user's joined groups (via `useStudyGroups` + `useLearning`). Each card: type badge (Note/Quiz/Lecture), title, group name, tap → route to that resource.
 
-## 2. Floating Bottom Navigation (new `src/components/BottomNav.tsx`)
+7. **Weekly Study Statistics** — 4 stat tiles in a 2×2 grid:
+   - Hours studied (sum `minutes_studied` last 7 days ÷ 60)
+   - Lectures completed (count from `lecture_progress` where completed, last 7 days)
+   - Flashcards reviewed (sum `cards_reviewed` last 7 days)
+   - Quizzes completed (fallback: `assignments_submitted` last 7 days until quizzes ship)
+   Each tile: gradient bg, big number, label, tiny delta vs previous week.
 
-Rendered in `App.tsx` inside routes where `user` context exists — hidden on `/welcome`, `/auth`, `/onboarding`, `/reset-password`, `/.lovable/oauth/consent`, and `/video-call`. Uses `useLocation` for active state, `useNavigate` for taps. Existing routes untouched.
+8. **Achievements** — derived badges from existing data (no schema changes):
+   - "7-day streak", "30-day streak" (from `streak.current_streak`)
+   - "Century Club" (100 cards reviewed total)
+   - "First Submission" (any assignment submitted)
+   Horizontal scroll rail of badge chips with gradient icons; locked ones shown dimmed.
 
-Structure:
-```
-[fixed bottom-4 inset-x-4] .glass .shadow-float rounded-full h-16
- └ 5 items: Home(/), Study Hub(/groups), Learn(/learning), Loopi AI(/ai-tutor), Profile(/profile)
-```
+## Design system (reusing existing tokens)
 
-Behavior:
-- Inactive → icon only, muted color
-- Active → icon + label pill, indigo→violet gradient background, icon scales to 1.15
-- Animated pill (`layoutId="nav-pill"` with framer-motion) slides between tabs
-- Tap: `scale: 0.92` spring; calls `navigator.vibrate?.(8)` when available (haptic)
-- Safe-area padding for iOS notch (`pb-[env(safe-area-inset-bottom)]`)
-- Page content gets `pb-28` to clear the nav
+- Purple brand identity: existing `grad-brand`, `grad-accent`, `shadow-glow`, `card-premium`, `glass` utility classes.
+- Radii 20–24px (existing `rounded-[24px]` / `rounded-3xl`).
+- Motion: `framer-motion` staggered fade+rise entrance, `whileTap: 0.97`, `whileHover` lift on cards.
+- Respect safe areas via existing `AppLayout` (bottom-nav padding already global).
+- All colors via semantic tokens — no hardcoded hex in components.
 
-## 3. Home Screen Redesign (`src/pages/Index.tsx`)
+## Files touched
 
-Preserve all data hooks (`useAuth`, `useAppUser`, `useStudyGroups`, `useNotifications`, `useStreak`). Rebuild layout as premium mobile-first dashboard:
+- `src/pages/Index.tsx` — full rewrite of the JSX (hooks unchanged).
+- Optionally add small presentational components under `src/components/home/` (e.g. `WeekDots.tsx`, `StatTile.tsx`, `AchievementChip.tsx`) to keep `Index.tsx` readable. Pure UI, no new hooks.
 
-```
-Header (glass, sticky)
-  · Avatar + "Good morning, {name} 👋" + Teacher chip
-  · Search icon + Bell (unread dot)
+## Explicitly untouched
 
-Hero AI Welcome Card (grad-brand, big radius, glow shadow)
-  · "Loopi AI" title, sparkle animated icon
-  · Sub: "Your study copilot is ready"
-  · CTA button → /ai-tutor
-  · Animated shimmer accent
+- `useAuth`, all Supabase clients, edge functions, RLS.
+- `App.tsx` routes, `BottomNav.tsx`, `AppLayout.tsx`.
+- Backend tables, migrations, RPCs.
 
-Today's Mission strip
-  · GoalRing (existing) + streak flame + minutes/cards mini stats
-  · "Adjust goal" chevron → existing GoalSettingsDialog
+## Notes / assumptions
 
-Continue Learning card row (horizontal scroll)
-  · Pulls from myGroups (existing). Each card: cover gradient, group name, subject, progress bar
-  · Empty state: "Start your first course" CTA → /learning
-
-Quick Actions grid (2x2 large tiles or 4-col chips)
-  · Flashcards, Groups, Resources, Video Call — each with icon in soft-tinted square, label, subtle hover
-
-Upcoming Classes / Recent Activity (side-by-side on md, stacked mobile)
-  · Uses notifications feed for Recent Activity
-  · Upcoming Classes derives from myGroups next lectures (already available via useLearning if fetched; otherwise empty state card with illustration)
-
-Streak / Daily Progress
-  · Mini heatmap teaser (reuse StreakHeatmap component) + "View full stats" → /profile
-
-Empty states across sections use friendly illustrations built from lucide icons in gradient circles + one-line copy + CTA.
-```
-
-All sections animate in with staggered `float-in` motion.
-
-## 4. Small Component Polish
-
-- `StreakChip.tsx` — upgrade to gradient border, glow on active streak
-- `GoalRing.tsx` — thicker stroke, gradient stroke via `<defs><linearGradient>` (indigo→violet), percentage in display font
-- `NotificationPopover` / `SearchDialog` triggers — replace muted round buttons with `card-premium` icon buttons
-
-Existing internal logic of these components stays identical.
-
-## 5. Files Touched
-
-- `src/index.css` — token overhaul, utilities, keyframes
-- `tailwind.config.ts` — extend colors (brand, accent), keyframes, boxShadow
-- `src/App.tsx` — mount `<BottomNav />` conditionally (no route changes)
-- `src/components/BottomNav.tsx` — NEW
-- `src/pages/Index.tsx` — full JSX rewrite; hooks unchanged
-- `src/components/StreakChip.tsx`, `src/components/GoalRing.tsx` — visual tweaks only
-
-Nothing else changes. Auth, MCP, edge functions, DB, hooks, RLS all untouched.
-
-## Out of Scope (this pass)
-
-Other pages (Groups, Learning, Profile, AITutor, etc.) keep current styling. They will visually benefit from the new tokens automatically, but no structural redesign yet — we can iterate per-page after Home lands.
+- "Upcoming Classes" and "Notes" don't have dedicated schemas yet; I'll derive them from existing data (assignments/lectures/resources) so nothing new is required backend-side. If you'd rather add a real `class_sessions` table later, that's a separate task.
