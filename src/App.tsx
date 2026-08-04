@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AnimatePresence } from "framer-motion";
 import SplashScreen from "@/components/SplashScreen";
+import { CallProvider } from "@/components/call/CallProvider";
 import BottomNav from "@/components/BottomNav";
 import AppLayout from "@/components/AppLayout";
 
@@ -18,7 +19,6 @@ const Groups = lazy(() => import("./pages/Groups"));
 const Learning = lazy(() => import("./pages/Learning"));
 const LearningGroup = lazy(() => import("./pages/LearningGroup"));
 const AITutor = lazy(() => import("./pages/AITutor"));
-const VideoCall = lazy(() => import("./pages/VideoCall"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Resources = lazy(() => import("./pages/Resources"));
@@ -62,7 +62,6 @@ const AppContent = () => {
               <Route path="/learning" element={<Learning />} />
               <Route path="/learning/:groupId" element={<LearningGroup />} />
               <Route path="/ai-tutor" element={<AITutor />} />
-              <Route path="/video-call" element={<VideoCall />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/resources" element={<Resources />} />
@@ -86,7 +85,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppContent />
+          <CallProvider>
+            <AppContent />
+          </CallProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

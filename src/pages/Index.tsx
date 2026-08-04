@@ -527,7 +527,7 @@ export default function Index() {
                       navigate(
                         c.kind === 'lecture'
                           ? `/learning/${c.group_id}`
-                          : `/video-call?groupId=${c.group_id}`
+                          : `/learning/${c.group_id}`
                       )
                     }
                     className="grad-brand text-white border-0 rounded-full h-9 px-4 hover:opacity-90"
