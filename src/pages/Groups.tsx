@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { CallMemberPicker } from '@/components/call/CallMemberPicker';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -29,6 +30,8 @@ export default function Groups() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<StudyGroup | null>(null);
   const [activeTab, setActiveTab] = useState<'my' | 'discover'>('my');
+  const [callGroup, setCallGroup] = useState<{ id: string; name: string } | null>(null);
+
   
   const { user, loading: authLoading } = useAuth();
   const { isTeacher } = useAppUser();
@@ -206,7 +209,7 @@ export default function Groups() {
                           title="Start video call"
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/video-call?groupId=${group.id}&name=${encodeURIComponent(group.name)}`);
+                            setCallGroup({ id: group.id, name: group.name });
                           }}
                           className="text-primary rounded-full h-9 w-9"
                         >
@@ -265,6 +268,14 @@ export default function Groups() {
         onClose={() => setShowCreateDialog(false)}
         onCreate={createGroup}
       />
+
+      <CallMemberPicker
+        open={!!callGroup}
+        groupId={callGroup?.id ?? null}
+        groupName={callGroup?.name}
+        onOpenChange={(o) => !o && setCallGroup(null)}
+      />
     </div>
   );
+
 }

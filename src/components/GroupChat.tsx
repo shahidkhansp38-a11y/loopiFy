@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Send, Loader2, Users, MessageCircle, HelpCircle, Settings, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Users, MessageCircle, HelpCircle, Settings, Video } from 'lucide-react';
+import { CallMemberPicker } from '@/components/call/CallMemberPicker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMessages } from '@/hooks/useMessages';
@@ -22,6 +23,7 @@ const MEMBER_LIMITS = [6, 10, 15, 25, 50];
 
 export function GroupChat({ group, onBack, onUpdateLimit, onUpdateDetails }: GroupChatProps) {
   const [activeTab, setActiveTab] = useState<Tab>('chat');
+  const [showCallPicker, setShowCallPicker] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newLimit, setNewLimit] = useState(group.max_members || 6);
   const [newName, setNewName] = useState(group.name);
@@ -133,6 +135,15 @@ export function GroupChat({ group, onBack, onUpdateLimit, onUpdateDetails }: Gro
               {group.member_count ?? 0}/{group.max_members || 6} members · {group.subject || 'Study Group'}
             </p>
           </div>
+
+          <button
+            onClick={() => setShowCallPicker(true)}
+            aria-label="Start video call"
+            title="Start video call"
+            className="p-2 rounded-full hover:bg-muted transition-colors"
+          >
+            <Video className="w-5 h-5 text-primary" />
+          </button>
 
           {isOwner && (
             <button
@@ -343,6 +354,13 @@ export function GroupChat({ group, onBack, onUpdateLimit, onUpdateDetails }: Gro
           </Button>
         </form>
       </motion.div>
+
+      <CallMemberPicker
+        open={showCallPicker}
+        groupId={group.id}
+        groupName={group.name}
+        onOpenChange={setShowCallPicker}
+      />
     </div>
   );
 }

@@ -167,6 +167,85 @@ export type Database = {
           },
         ]
       }
+      call_signals: {
+        Row: {
+          call_id: string
+          created_at: string
+          id: string
+          kind: string
+          payload: Json
+          sender_id: string
+        }
+        Insert: {
+          call_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          payload: Json
+          sender_id: string
+        }
+        Update: {
+          call_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_signals_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calls: {
+        Row: {
+          answered_at: string | null
+          callee_id: string
+          caller_id: string
+          created_at: string
+          end_reason: string | null
+          ended_at: string | null
+          group_id: string | null
+          id: string
+          status: string
+        }
+        Insert: {
+          answered_at?: string | null
+          callee_id: string
+          caller_id: string
+          created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
+          group_id?: string | null
+          id?: string
+          status?: string
+        }
+        Update: {
+          answered_at?: string | null
+          callee_id?: string
+          caller_id?: string
+          created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
+          group_id?: string | null
+          id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_activity: {
         Row: {
           activity_date: string
@@ -1035,6 +1114,10 @@ export type Database = {
       }
       is_assignment_admin: {
         Args: { _assignment_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_call_participant: {
+        Args: { _call_id: string; _user_id: string }
         Returns: boolean
       }
       is_group_admin: {
