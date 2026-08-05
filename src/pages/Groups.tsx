@@ -13,7 +13,8 @@ import {
   UserPlus,
   LogIn,
   Video,
-  LogOut
+  LogOut,
+  History
 
 
 } from 'lucide-react';
