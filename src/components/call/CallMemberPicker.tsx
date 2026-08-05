@@ -15,6 +15,7 @@ interface Props {
   groupName?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onStartGroupCall?: () => void;
 }
 
 export function CallMemberPicker({ groupId, groupName, open, onOpenChange }: Props) {
