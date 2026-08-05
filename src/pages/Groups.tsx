@@ -33,6 +33,7 @@ export default function Groups() {
   const [selectedGroup, setSelectedGroup] = useState<StudyGroup | null>(null);
   const [activeTab, setActiveTab] = useState<'my' | 'discover'>('my');
   const [callGroup, setCallGroup] = useState<{ id: string; name: string } | null>(null);
+  const [groupCall, setGroupCall] = useState<{ id: string; name: string } | null>(null);
 
   
   const { user, loading: authLoading } = useAuth();
