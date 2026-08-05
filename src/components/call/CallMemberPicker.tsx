@@ -18,7 +18,7 @@ interface Props {
   onStartGroupCall?: () => void;
 }
 
-export function CallMemberPicker({ groupId, groupName, open, onOpenChange }: Props) {
+export function CallMemberPicker({ groupId, groupName, open, onOpenChange, onStartGroupCall }: Props) {
   const { user } = useAuth();
   const { startCall } = useCall();
   const [members, setMembers] = useState<Member[]>([]);
