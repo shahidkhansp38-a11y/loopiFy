@@ -106,8 +106,17 @@ export default function Groups() {
             >
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
-            <h1 className="text-xl font-bold text-foreground">Study Groups</h1>
+            <h1 className="text-xl font-bold text-foreground flex-1">Study Groups</h1>
+            <button
+              onClick={() => navigate('/calls')}
+              aria-label="Call history"
+              title="Call history"
+              className="p-2 rounded-full hover:bg-muted transition-colors"
+            >
+              <History className="w-5 h-5 text-primary" />
+            </button>
           </div>
+
 
           {/* Create Group CTA */}
           <Button
