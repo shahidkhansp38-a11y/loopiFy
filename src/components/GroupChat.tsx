@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Send, Loader2, Users, MessageCircle, HelpCircle, Settings, Video } from 'lucide-react';
 import { CallMemberPicker } from '@/components/call/CallMemberPicker';
+import { GroupCallRoom } from '@/components/call/GroupCallRoom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMessages } from '@/hooks/useMessages';
@@ -24,6 +25,7 @@ const MEMBER_LIMITS = [6, 10, 15, 25, 50];
 export function GroupChat({ group, onBack, onUpdateLimit, onUpdateDetails }: GroupChatProps) {
   const [activeTab, setActiveTab] = useState<Tab>('chat');
   const [showCallPicker, setShowCallPicker] = useState(false);
+  const [inGroupCall, setInGroupCall] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newLimit, setNewLimit] = useState(group.max_members || 6);
   const [newName, setNewName] = useState(group.name);
@@ -79,6 +81,16 @@ export function GroupChat({ group, onBack, onUpdateLimit, onUpdateDetails }: Gro
     if (!name) return '?';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
+
+  if (inGroupCall) {
+    return (
+      <GroupCallRoom
+        groupId={group.id}
+        groupName={group.name}
+        onLeave={() => setInGroupCall(false)}
+      />
+    );
+  }
 
   // Render Q&A tab
   if (activeTab === 'qa') {
@@ -360,6 +372,7 @@ export function GroupChat({ group, onBack, onUpdateLimit, onUpdateDetails }: Gro
         groupId={group.id}
         groupName={group.name}
         onOpenChange={setShowCallPicker}
+        onStartGroupCall={() => setInGroupCall(true)}
       />
     </div>
   );
