@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Video } from 'lucide-react';
+import { Loader2, Video, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useCall } from './CallProvider';
@@ -15,9 +15,10 @@ interface Props {
   groupName?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onStartGroupCall?: () => void;
 }
 
-export function CallMemberPicker({ groupId, groupName, open, onOpenChange }: Props) {
+export function CallMemberPicker({ groupId, groupName, open, onOpenChange, onStartGroupCall }: Props) {
   const { user } = useAuth();
   const { startCall } = useCall();
   const [members, setMembers] = useState<Member[]>([]);
@@ -75,6 +76,33 @@ export function CallMemberPicker({ groupId, groupName, open, onOpenChange }: Pro
         <DialogHeader>
           <DialogTitle>Video call {groupName ? `· ${groupName}` : ''}</DialogTitle>
         </DialogHeader>
+
+        {onStartGroupCall && (
+          <button
+            onClick={() => {
+              onOpenChange(false);
+              onStartGroupCall();
+            }}
+            className="w-full flex items-center gap-3 p-3 rounded-2xl grad-brand text-white text-left"
+          >
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <Users className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm">Start group video call</p>
+              <p className="text-[11px] text-white/80">Everyone in this group can join</p>
+            </div>
+            <Video className="w-4 h-4" />
+          </button>
+        )}
+
+        {onStartGroupCall && (
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground px-1">
+            Or call one member
+          </p>
+        )}
+
+
 
         {loading ? (
           <div className="py-10 flex justify-center">

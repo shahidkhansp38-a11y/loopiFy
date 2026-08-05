@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CallMemberPicker } from '@/components/call/CallMemberPicker';
+import { GroupCallRoom } from '@/components/call/GroupCallRoom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -12,7 +13,8 @@ import {
   UserPlus,
   LogIn,
   Video,
-  LogOut
+  LogOut,
+  History
 
 
 } from 'lucide-react';
@@ -31,6 +33,7 @@ export default function Groups() {
   const [selectedGroup, setSelectedGroup] = useState<StudyGroup | null>(null);
   const [activeTab, setActiveTab] = useState<'my' | 'discover'>('my');
   const [callGroup, setCallGroup] = useState<{ id: string; name: string } | null>(null);
+  const [groupCall, setGroupCall] = useState<{ id: string; name: string } | null>(null);
 
   
   const { user, loading: authLoading } = useAuth();
@@ -69,6 +72,18 @@ export default function Groups() {
     return <GroupChat group={selectedGroup} onBack={() => setSelectedGroup(null)} onUpdateLimit={updateGroupLimit} onUpdateDetails={updateGroupDetails} />;
   }
 
+  if (groupCall) {
+    return (
+      <GroupCallRoom
+        groupId={groupCall.id}
+        groupName={groupCall.name}
+        onLeave={() => setGroupCall(null)}
+      />
+    );
+  }
+
+
+
   const displayedGroups = activeTab === 'my' ? myGroups : groups;
   const filteredGroups = displayedGroups.filter(group =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -91,8 +106,17 @@ export default function Groups() {
             >
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </button>
-            <h1 className="text-xl font-bold text-foreground">Study Groups</h1>
+            <h1 className="text-xl font-bold text-foreground flex-1">Study Groups</h1>
+            <button
+              onClick={() => navigate('/calls')}
+              aria-label="Call history"
+              title="Call history"
+              className="p-2 rounded-full hover:bg-muted transition-colors"
+            >
+              <History className="w-5 h-5 text-primary" />
+            </button>
           </div>
+
 
           {/* Create Group CTA */}
           <Button
@@ -274,7 +298,9 @@ export default function Groups() {
         groupId={callGroup?.id ?? null}
         groupName={callGroup?.name}
         onOpenChange={(o) => !o && setCallGroup(null)}
+        onStartGroupCall={() => callGroup && setGroupCall(callGroup)}
       />
+
     </div>
   );
 
