@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CallMemberPicker } from '@/components/call/CallMemberPicker';
+import { GroupCallRoom } from '@/components/call/GroupCallRoom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
