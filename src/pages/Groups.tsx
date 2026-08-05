@@ -72,6 +72,18 @@ export default function Groups() {
     return <GroupChat group={selectedGroup} onBack={() => setSelectedGroup(null)} onUpdateLimit={updateGroupLimit} onUpdateDetails={updateGroupDetails} />;
   }
 
+  if (groupCall) {
+    return (
+      <GroupCallRoom
+        groupId={groupCall.id}
+        groupName={groupCall.name}
+        onLeave={() => setGroupCall(null)}
+      />
+    );
+  }
+
+
+
   const displayedGroups = activeTab === 'my' ? myGroups : groups;
   const filteredGroups = displayedGroups.filter(group =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
