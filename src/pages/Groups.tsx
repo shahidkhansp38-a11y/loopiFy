@@ -298,7 +298,9 @@ export default function Groups() {
         groupId={callGroup?.id ?? null}
         groupName={callGroup?.name}
         onOpenChange={(o) => !o && setCallGroup(null)}
+        onStartGroupCall={() => callGroup && setGroupCall(callGroup)}
       />
+
     </div>
   );
 
