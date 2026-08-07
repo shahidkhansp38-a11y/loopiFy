@@ -34,7 +34,7 @@ import { useStudyGroups } from '@/hooks/useStudyGroups';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useStreak } from '@/hooks/useStreak';
 import { useHomeDashboard } from '@/hooks/useHomeDashboard';
-import SearchDialog from '@/components/SearchDialog';
+import { openGlobalSearch } from '@/hooks/useGlobalSearch';
 import NotificationPopover from '@/components/NotificationPopover';
 import { GoalRing } from '@/components/GoalRing';
 import { GoalSettingsDialog } from '@/components/GoalSettingsDialog';
@@ -67,7 +67,7 @@ export default function Index() {
   const { streak, today, goal, history } = useStreak();
   const { lectures, classes, stats } = useHomeDashboard();
   const navigate = useNavigate();
-  const [searchOpen, setSearchOpen] = useState(false);
+  
   const [goalsOpen, setGoalsOpen] = useState(false);
 
   useEffect(() => {
@@ -253,7 +253,7 @@ export default function Index() {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setSearchOpen(true)}
+              onClick={openGlobalSearch}
               className="w-10 h-10 rounded-full card-premium flex items-center justify-center hover:scale-105 transition-transform"
               aria-label="Search"
             >
@@ -631,7 +631,7 @@ export default function Index() {
         </motion.section>
       </main>
 
-      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      
       <GoalSettingsDialog open={goalsOpen} onOpenChange={setGoalsOpen} />
     </div>
   );
