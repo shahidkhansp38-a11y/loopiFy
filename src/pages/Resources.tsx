@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, BookOpen, FileText, ExternalLink, Search, Loader2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -24,9 +24,15 @@ const TYPE_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export default function Resources() {
+  const [searchParams] = useSearchParams();
+  const deepLinkSem = Number(searchParams.get('sem'));
+  const deepLinkId = searchParams.get('id');
+
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSemester, setSelectedSemester] = useState(1);
+  const [selectedSemester, setSelectedSemester] = useState(
+    deepLinkSem >= 1 && deepLinkSem <= 8 ? deepLinkSem : 1,
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [viewingResource, setViewingResource] = useState<Resource | null>(null);
   const { user, loading: authLoading } = useAuth();
@@ -45,12 +51,18 @@ export default function Resources() {
         .eq('semester', selectedSemester)
         .order('subject');
 
-      if (!error && data) setResources(data);
+      if (!error && data) {
+        setResources(data);
+        if (deepLinkId) {
+          const match = data.find((r) => r.id === deepLinkId);
+          if (match) setViewingResource(match);
+        }
+      }
       setLoading(false);
     };
 
     if (user) fetchResources();
-  }, [user, selectedSemester]);
+  }, [user, selectedSemester, deepLinkId]);
 
   const filtered = resources.filter(r =>
     r.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
