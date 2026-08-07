@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users } from 'lucide-react';
+import { Users, PlayCircle, BookOpen, Layers, ClipboardList, Loader2, Clock } from 'lucide-react';
 import {
   CommandDialog,
   CommandInput,
@@ -9,83 +9,105 @@ import {
   CommandGroup,
   CommandItem,
 } from '@/components/ui/command';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  useGlobalSearch,
+  getRecentSearches,
+  pushRecentSearch,
+  SearchResult,
+  SearchResultType,
+} from '@/hooks/useGlobalSearch';
 
 interface SearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-interface GroupResult {
-  id: string;
-  name: string;
-  subject: string | null;
-}
+const GROUP_META: Record<SearchResultType, { heading: string; Icon: typeof Users }> = {
+  group: { heading: 'Study Groups', Icon: Users },
+  lecture: { heading: 'Lectures', Icon: PlayCircle },
+  resource: { heading: 'Resources', Icon: BookOpen },
+  deck: { heading: 'Flashcard Decks', Icon: Layers },
+  assignment: { heading: 'Assignments', Icon: ClipboardList },
+};
+
+const ORDER: SearchResultType[] = ['group', 'lecture', 'resource', 'deck', 'assignment'];
 
 export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
-  const [results, setResults] = useState<GroupResult[]>([]);
   const [query, setQuery] = useState('');
+  const [recents, setRecents] = useState<string[]>([]);
   const navigate = useNavigate();
+  const { results, loading } = useGlobalSearch(query, open);
 
   useEffect(() => {
-    if (!open) {
-      setQuery('');
-      setResults([]);
-      return;
-    }
+    if (open) setRecents(getRecentSearches());
+    else setQuery('');
   }, [open]);
 
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
-
-    const timeout = setTimeout(async () => {
-      const { data } = await supabase
-        .from('study_groups')
-        .select('id, name, subject')
-        .or(`name.ilike.%${query}%,subject.ilike.%${query}%`)
-        .limit(10);
-
-      setResults(data || []);
-    }, 300);
-
-    return () => clearTimeout(timeout);
-  }, [query]);
-
-  const handleSelect = (groupId: string) => {
+  const handleSelect = (result: SearchResult) => {
+    pushRecentSearch(query);
     onOpenChange(false);
-    navigate('/groups');
+    navigate(result.route);
   };
+
+  const showRecents = !query.trim() && recents.length > 0;
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
-        placeholder="Search study groups..."
+        placeholder="Search groups, lectures, resources, cards..."
         value={query}
         onValueChange={setQuery}
       />
       <CommandList>
-        <CommandEmpty>No groups found.</CommandEmpty>
-        <CommandGroup heading="Study Groups">
-          {results.map((group) => (
-            <CommandItem
-              key={group.id}
-              value={group.name}
-              onSelect={() => handleSelect(group.id)}
-              className="cursor-pointer"
-            >
-              <Users className="mr-2 h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="font-medium">{group.name}</p>
-                {group.subject && (
-                  <p className="text-xs text-muted-foreground">{group.subject}</p>
-                )}
-              </div>
-            </CommandItem>
-          ))}
-        </CommandGroup>
+        {loading && (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
+        {!loading && !showRecents && (
+          <CommandEmpty>
+            {query.trim().length < 2 ? 'Type at least 2 characters…' : 'No results found.'}
+          </CommandEmpty>
+        )}
+
+        {showRecents && (
+          <CommandGroup heading="Recent searches">
+            {recents.map((term) => (
+              <CommandItem key={term} value={term} onSelect={() => setQuery(term)} className="cursor-pointer">
+                <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{term}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
+
+        {!loading &&
+          ORDER.map((type) => {
+            const items = results.filter((r) => r.type === type);
+            if (items.length === 0) return null;
+            const { heading, Icon } = GROUP_META[type];
+            return (
+              <CommandGroup key={type} heading={heading}>
+                {items.map((item) => (
+                  <CommandItem
+                    key={`${type}-${item.id}`}
+                    value={`${type}-${item.id}-${item.title}`}
+                    onSelect={() => handleSelect(item)}
+                    className="cursor-pointer"
+                  >
+                    <Icon className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{item.title}</p>
+                      {item.subtitle && (
+                        <p className="text-xs text-muted-foreground truncate">{item.subtitle}</p>
+                      )}
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            );
+          })}
       </CommandList>
     </CommandDialog>
   );
