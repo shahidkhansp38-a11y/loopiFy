@@ -160,3 +160,10 @@ export function useGlobalSearch(query: string, enabled: boolean) {
 
   return { results, loading };
 }
+
+export const GLOBAL_SEARCH_EVENT = 'loopify:open-search';
+
+/** Open the app-wide search dialog from anywhere. */
+export function openGlobalSearch() {
+  window.dispatchEvent(new Event(GLOBAL_SEARCH_EVENT));
+}
