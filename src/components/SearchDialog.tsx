@@ -52,7 +52,7 @@ export default function SearchDialog({ open, onOpenChange }: SearchDialogProps) 
   const showRecents = !query.trim() && recents.length > 0;
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
+    <CommandDialog open={open} onOpenChange={onOpenChange} shouldFilter={false}>
       <CommandInput
         placeholder="Search groups, lectures, resources, cards..."
         value={query}
