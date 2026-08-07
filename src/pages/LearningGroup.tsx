@@ -29,6 +29,7 @@ import { useStreak } from '@/hooks/useStreak';
 
 export default function LearningGroup() {
   const { groupId } = useParams<{ groupId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { lectures, progress, isAdmin, loading, addLecture, deleteLecture, upsertProgress, markCompleted } =
@@ -37,6 +38,15 @@ export default function LearningGroup() {
   const [groupName, setGroupName] = useState<string>('');
   const [activeLecture, setActiveLecture] = useState<Lecture | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [tab, setTab] = useState(searchParams.get('tab') ?? 'lectures');
+
+  // Deep link: open a specific lecture once lectures have loaded.
+  const deepLinkLecture = searchParams.get('lecture');
+  useEffect(() => {
+    if (!deepLinkLecture) return;
+    const match = lectures.find((l) => l.id === deepLinkLecture);
+    if (match) setActiveLecture(match);
+  }, [deepLinkLecture, lectures]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
