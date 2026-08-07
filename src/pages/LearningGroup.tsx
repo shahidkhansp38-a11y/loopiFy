@@ -161,7 +161,7 @@ export default function LearningGroup() {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-3xl">
-        <Tabs defaultValue="lectures" className="w-full">
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="grid w-full grid-cols-5 h-12 rounded-xl">
             <TabsTrigger value="lectures" className="rounded-lg">Lectures</TabsTrigger>
             <TabsTrigger value="cards" className="rounded-lg">Cards</TabsTrigger>
