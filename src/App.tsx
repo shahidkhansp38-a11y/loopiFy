@@ -48,34 +48,37 @@ const AppContent = () => {
       </AnimatePresence>
 
       {!showSplash && (
-        <Suspense fallback={
-          <div className="min-h-screen flex items-center justify-center bg-background">
-            <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-          </div>
-        }>
+        <>
           <AppLayout>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/welcome" element={<Landing />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/groups" element={<Groups />} />
-              <Route path="/learning" element={<Learning />} />
-              <Route path="/learning/:groupId" element={<LearningGroup />} />
-              <Route path="/ai-tutor" element={<AITutor />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/resources" element={<Resources />} />
-              <Route path="/flashcards" element={<Flashcards />} />
-              <Route path="/calls" element={<CallHistory />} />
-              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={
+              <div className="min-h-[60vh] flex items-center justify-center bg-background">
+                <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+              </div>
+            }>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/welcome" element={<Landing />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/groups" element={<Groups />} />
+                <Route path="/learning" element={<Learning />} />
+                <Route path="/learning/:groupId" element={<LearningGroup />} />
+                <Route path="/ai-tutor" element={<AITutor />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/resources" element={<Resources />} />
+                <Route path="/flashcards" element={<Flashcards />} />
+                <Route path="/calls" element={<CallHistory />} />
+                <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
           </AppLayout>
           <BottomNav />
-        </Suspense>
+        </>
       )}
+
     </>
   );
 };
