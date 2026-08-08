@@ -29,7 +29,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border"
+      className="fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border overflow-hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       aria-label="Primary"
     >
@@ -40,6 +40,7 @@ export default function BottomNav() {
           return (
             <li key={t.path} className="flex-1">
               <motion.button
+                type="button"
                 onClick={() => handleTap(t.path)}
                 whileTap={{ scale: 0.94 }}
                 className="relative w-full h-16 flex flex-col items-center justify-center gap-1 outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
@@ -50,9 +51,10 @@ export default function BottomNav() {
                   <motion.span
                     layoutId="nav-indicator"
                     transition={{ type: 'spring', stiffness: 500, damping: 34 }}
-                    className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-10 rounded-full grad-brand"
+                    className="absolute top-0.5 left-1/2 -translate-x-1/2 h-0.5 w-10 rounded-full grad-brand"
                   />
                 )}
+
                 <Icon
                   className={`w-5 h-5 transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`}
                   strokeWidth={active ? 2.4 : 2}
