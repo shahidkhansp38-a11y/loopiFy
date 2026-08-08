@@ -1,7 +1,9 @@
 import { useLocation } from 'react-router-dom';
 import { ReactNode, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import SearchDialog from '@/components/SearchDialog';
 import { GLOBAL_SEARCH_EVENT } from '@/hooks/useGlobalSearch';
+
 
 // Routes where the floating BottomNav is hidden — must match BottomNav.HIDDEN.
 export const BOTTOM_NAV_HIDDEN = [
@@ -42,8 +44,22 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <div className={withNav ? 'pb-bottom-nav' : undefined}>{children}</div>
+      <div className={withNav ? 'pb-bottom-nav' : undefined}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="will-change-transform"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </div>
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </>
   );
 }
+
