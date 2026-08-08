@@ -1,7 +1,9 @@
 import { useLocation } from 'react-router-dom';
 import { ReactNode, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import SearchDialog from '@/components/SearchDialog';
 import { GLOBAL_SEARCH_EVENT } from '@/hooks/useGlobalSearch';
+
 
 // Routes where the floating BottomNav is hidden — must match BottomNav.HIDDEN.
 export const BOTTOM_NAV_HIDDEN = [
