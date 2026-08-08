@@ -44,8 +44,22 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <div className={withNav ? 'pb-bottom-nav' : undefined}>{children}</div>
+      <div className={withNav ? 'pb-bottom-nav' : undefined}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="will-change-transform"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </div>
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </>
   );
 }
+
