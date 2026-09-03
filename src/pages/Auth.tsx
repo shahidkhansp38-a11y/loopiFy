@@ -99,7 +99,7 @@ export default function Auth() {
     }
     setOtpSent(true);
     setResendCooldown(30);
-    toast({ title: 'Code sent', description: `We sent a 6-digit code to ${phone}` });
+    toast({ title: 'Code sent', description: `We sent a 6-digit code to ${normalizeIndianPhone(phone)}` });
   };
 
   const verifyOtp = async () => {
@@ -110,7 +110,7 @@ export default function Auth() {
       return;
     }
     setIsLoading(true);
-    const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: 'sms' });
+    const { error } = await supabase.auth.verifyOtp({ phone: normalizeIndianPhone(phone), token: otp, type: 'sms' });
     setIsLoading(false);
     if (error) {
       setErrors({ form: error.message });
