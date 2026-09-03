@@ -396,23 +396,28 @@ export default function Auth() {
                   <div className="space-y-1">
                     <div className="relative">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+                      <span className="absolute left-11 top-1/2 -translate-y-1/2 text-base font-medium text-foreground select-none">
+                        +91
+                      </span>
+                      <span className="absolute left-[4.6rem] top-1/2 -translate-y-1/2 h-5 w-px bg-border" />
                       <Input
                         type="tel"
-                        inputMode="tel"
-                        placeholder="+14155551234"
+                        inputMode="numeric"
+                        placeholder="63623 34546"
+                        maxLength={10}
                         value={phone}
                         onChange={(e) => {
-                          setPhone(e.target.value.trim());
+                          setPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
                           if (errors.phone) clearErrors();
                         }}
                         disabled={otpSent}
-                        className={`pl-12 h-14 rounded-xl border-2 text-base transition-all ${
+                        className={`pl-[5.5rem] h-14 rounded-xl border-2 text-base tracking-wide transition-all ${
                           errors.phone ? 'border-destructive focus:border-destructive' : 'border-input focus:border-primary'
                         }`}
                       />
                     </div>
                     {errors.phone && <p className="text-sm text-destructive ml-1">{errors.phone}</p>}
-                    <p className="text-xs text-muted-foreground ml-1">Include country code (E.164 format)</p>
+                    <p className="text-xs text-muted-foreground ml-1">Enter your 10-digit Indian mobile number</p>
                   </div>
 
                   {otpSent && (
