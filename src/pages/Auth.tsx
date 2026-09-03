@@ -29,7 +29,15 @@ const signupSchema = z.object({
 type AuthMode = 'login' | 'signup' | 'forgot';
 type AuthChannel = 'email' | 'phone';
 
-const phoneSchema = z.string().regex(/^\+[1-9]\d{7,14}$/, 'Enter phone in E.164 format, e.g. +14155551234');
+const phoneSchema = z.string().regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Indian mobile number');
+
+// Normalize user input to an Indian E.164 number (+91XXXXXXXXXX).
+const normalizeIndianPhone = (raw: string): string => {
+  let digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('91') && digits.length === 12) digits = digits.slice(2);
+  if (digits.startsWith('0')) digits = digits.slice(1);
+  return digits.length === 10 ? `+91${digits}` : digits;
+};
 
 export default function Auth() {
   const [channel, setChannel] = useState<AuthChannel>('email');
@@ -73,14 +81,15 @@ export default function Auth() {
 
   const sendOtp = async () => {
     clearErrors();
-    const parsed = phoneSchema.safeParse(phone);
+    const e164 = normalizeIndianPhone(phone);
+    const parsed = phoneSchema.safeParse(e164.replace(/^\+91/, ''));
     if (!parsed.success) {
       setErrors({ phone: parsed.error.errors[0].message });
       triggerShake();
       return;
     }
     setIsLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ phone });
+    const { error } = await supabase.auth.signInWithOtp({ phone: e164 });
     setIsLoading(false);
     if (error) {
       setErrors({ form: error.message });
